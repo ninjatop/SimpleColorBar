@@ -1,4 +1,4 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 import org.junit.Test;
 
