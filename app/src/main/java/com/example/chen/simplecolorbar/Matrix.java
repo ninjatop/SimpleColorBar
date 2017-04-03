@@ -1,9 +1,8 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 
 import android.graphics.Color;
 import android.util.Log;
-import android.widget.TextView;
 
 import java.util.BitSet;
 

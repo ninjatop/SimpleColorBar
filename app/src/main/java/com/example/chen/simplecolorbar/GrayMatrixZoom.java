@@ -1,4 +1,4 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 /**
  * Created by zhantong on 16/4/22.

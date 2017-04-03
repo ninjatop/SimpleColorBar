@@ -1,4 +1,4 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 import android.os.Environment;
 import android.os.Handler;
@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import com.example.chen.colorscreencamera.ReedSolomon.GenericGF;
-import com.example.chen.colorscreencamera.ReedSolomon.ReedSolomonDecoder;
-import com.example.chen.colorscreencamera.ReedSolomon.ReedSolomonException;
+import com.example.chen.simplecolorbar.ReedSolomon.GenericGF;
+import com.example.chen.simplecolorbar.ReedSolomon.ReedSolomonDecoder;
+import com.example.chen.simplecolorbar.ReedSolomon.ReedSolomonException;
 
 /**
  * Created by zhantong on 16/5/29.

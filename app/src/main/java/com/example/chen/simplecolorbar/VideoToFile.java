@@ -1,4 +1,4 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 import android.media.MediaExtractor;
 import android.media.MediaFormat;

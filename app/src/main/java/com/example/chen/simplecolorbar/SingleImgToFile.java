@@ -1,4 +1,4 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,7 +7,6 @@ import android.util.Log;
 
 import net.fec.openrq.parameters.FECParameters;
 
-import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 /**

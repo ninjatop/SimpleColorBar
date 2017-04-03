@@ -1,8 +1,5 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
-import android.util.Log;
-
-import java.util.BitSet;
 import java.util.HashMap;
 
 /**

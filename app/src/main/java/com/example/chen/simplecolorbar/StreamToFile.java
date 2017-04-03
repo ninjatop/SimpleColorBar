@@ -1,4 +1,4 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,18 +7,14 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 
 import net.fec.openrq.parameters.FECParameters;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.IntBuffer;
 import java.util.BitSet;
-import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 

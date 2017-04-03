@@ -1,11 +1,4 @@
-package com.example.chen.colorscreencamera;
-
-import android.util.Log;
-
-import com.example.chen.colorscreencamera.Matrix;
-
-import java.util.Arrays;
-import java.util.BitSet;
+package com.example.chen.simplecolorbar;
 
 /**
  * Created by zhantong on 16/5/5.

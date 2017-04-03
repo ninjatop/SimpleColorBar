@@ -1,4 +1,4 @@
-package com.example.chen.colorscreencamera;
+package com.example.chen.simplecolorbar;
 
 /**
  * 透视变换,对zxing的透视变换代码进行了一些修改

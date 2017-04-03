@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.chen.colorscreencamera.ReedSolomon;
+package com.example.chen.simplecolorbar.ReedSolomon;
 
 
 

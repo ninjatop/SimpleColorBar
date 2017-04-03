@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ColorScreenCamera</string>
+    <string name="app_name">SimpleColorBar</string>
     <string name="barcode_type">类型</string>
     <string name="file_name_created">生成文件名</string>
     <string name="open_file">打开文件</string>
