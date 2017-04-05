@@ -33,11 +33,11 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
     private static final String TAG="ProcessFrame";
     private static final boolean VERBOSE = false;
 
-    public static final int WHAT_BARCODE_FORMAT=1;
-    public static final int WHAT_FEC_PARAMETERS=2;
-    public static final int WHAT_RAW_CONTENT=3;
-    public static final int WHAT_FILE_NAME=4;
-    public static final int WHAT_TRUTH_FILE_PATH=5;
+    //public static final int WHAT_BARCODE_FORMAT=1;
+    public static final int WHAT_FEC_PARAMETERS=1;
+    public static final int WHAT_RAW_CONTENT=2;
+    public static final int WHAT_FILE_NAME=3;
+    public static final int WHAT_TRUTH_FILE_PATH=4;
 
     private static boolean IS_RAPTORQ_ENABLE;
 
@@ -51,8 +51,6 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
     private String fileName;
     private FrameCallback mFrameCallback;
     private FileToBitSet truthBitSet;
-
-    private BarcodeFormat barcodeFormat;
 
     private Statistics statistics;
 
@@ -227,14 +225,14 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
 @Override
 public boolean handleMessage(Message msg) {
     switch (msg.what) {
-        case WHAT_BARCODE_FORMAT:
+        /*case WHAT_BARCODE_FORMAT:
             barcodeFormat = (BarcodeFormat) msg.obj;
             matrix = new Matrix();
             decoder = new ReedSolomonDecoder(selectRSLengthParam(matrix.ecLength));
             if(IS_STATISTIC_ENABLE) {
                 statistics.setBarcodeFormat(barcodeFormat);
             }
-            break;
+            break;*/
         case WHAT_FEC_PARAMETERS:
             FECParameters parameters = (FECParameters) msg.obj;
             if(IS_STATISTIC_ENABLE) {
@@ -260,7 +258,7 @@ public boolean handleMessage(Message msg) {
         case WHAT_TRUTH_FILE_PATH:
             String truthFilePath=(String)msg.obj;
             if(IS_STATISTIC_ENABLE) {
-                statistics.loadTruthFile(truthFilePath, barcodeFormat);
+                statistics.loadTruthFile(truthFilePath);
             }
             //truthBitSet=new FileToBitSet(barcodeFormat,truthFilePath);
             break;

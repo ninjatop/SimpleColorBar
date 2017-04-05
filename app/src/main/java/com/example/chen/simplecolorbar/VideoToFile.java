@@ -14,10 +14,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class VideoToFile extends StreamToFile {
     private static final String TAG = "VideoToFile";//log tag
     private static final boolean VERBOSE = false;//是否记录详细log
-    private static final int COLOR_TYPE=Matrix.COLOR_TYPE_RGB;
+    private static final int COLOR_TYPE = Matrix.COLOR_TYPE_RGB;
     private VideoToFrames videoToFrames;
-    public VideoToFile(Handler handler, BarcodeFormat format,String truthFilePath) {
-        super(handler,format,truthFilePath);
+    public VideoToFile(Handler handler,String truthFilePath) {
+        super(handler,truthFilePath);
     }
     public int getImgColorType(){
         return COLOR_TYPE;

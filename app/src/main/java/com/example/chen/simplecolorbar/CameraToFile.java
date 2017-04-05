@@ -15,8 +15,8 @@ public class CameraToFile extends StreamToFile {
     private static final boolean VERBOSE = false;//是否记录详细log
     private static final int COLOR_TYPE=Matrix.COLOR_TYPE_YUV;
     private CameraPreview mPreview;
-    public CameraToFile(Handler handler, BarcodeFormat format,String truthFilePath) {
-        super(handler,format,truthFilePath);
+    public CameraToFile(Handler handler,String truthFilePath) {
+        super(handler,truthFilePath);
     }
     public void toFile(String fileName,CameraPreview mPreview){
         if(VERBOSE){Log.i(TAG,"process camera");}

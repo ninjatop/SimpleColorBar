@@ -25,16 +25,14 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
     private static final String TAG = "StreamToFile";//log tag
     private static final boolean VERBOSE = false;//是否记录详细log
     private static final long QUEUE_WAIT_SECONDS=4;
-    private static BarcodeFormat barcodeFormat;
     private Handler processHandler;
     protected boolean onDecodeFlag = true;//判断是否继续解码
-    public StreamToFile(Handler handler,BarcodeFormat format,String truthFilePath) {
+    public StreamToFile(Handler handler,String truthFilePath) {
         super(handler);
         //barcodeFormat=format;
-        barcodeFormat = BarcodeFormat.NORMAL;
         ProcessFrame processFrame = new ProcessFrame("process");processFrame.start();
         processHandler=new Handler(processFrame.getLooper(), processFrame);
-        processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_BARCODE_FORMAT,format));
+        //processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_BARCODE_FORMAT));
         if(!truthFilePath.equals("")) {
             processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_TRUTH_FILE_PATH,truthFilePath));
         }

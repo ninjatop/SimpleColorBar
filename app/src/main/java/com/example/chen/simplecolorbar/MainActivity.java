@@ -31,7 +31,6 @@ public class MainActivity extends Activity {
 
     private static Context mContext;
 
-    private BarcodeFormat barcodeFormat;
 
     public static final int MESSAGE_UI_DEBUG_VIEW=1;
     public static final int MESSAGE_UI_INFO_VIEW=2;
@@ -62,6 +61,10 @@ public class MainActivity extends Activity {
             }
         }
     });
+
+    /*
+    
+     */
     /**
      * 界面初始化,设置界面,调用CameraSettings()设置相机参数
      *
@@ -266,7 +269,7 @@ public class MainActivity extends Activity {
         Thread worker = new Thread() {
             @Override
             public void run() {
-                VideoToFile videoToFile=new VideoToFile(mHandler,barcodeFormat,truthFilePath);
+                VideoToFile videoToFile=new VideoToFile(mHandler,truthFilePath);
                 videoToFile.toFile(newFileName, videoFilePath);
             }
         };
@@ -288,7 +291,7 @@ public class MainActivity extends Activity {
         Thread worker = new Thread() {
             @Override
             public void run() {
-                SingleImgToFile singleImgToFile=new SingleImgToFile(mHandler,barcodeFormat,truthFilePath, saveFilePath);
+                SingleImgToFile singleImgToFile=new SingleImgToFile(mHandler,truthFilePath, saveFilePath);
                 singleImgToFile.singleImg(imageFilePath);
             }
         };
@@ -354,7 +357,7 @@ public class MainActivity extends Activity {
                 Thread worker = new Thread() {
                     @Override
                     public void run() {
-                        CameraToFile cameraToFile=new CameraToFile(mHandler,barcodeFormat,truthFilePath);
+                        CameraToFile cameraToFile=new CameraToFile(mHandler,truthFilePath);
                         cameraToFile.toFile(newFileName, fragment.mPreview);
                     }
                 };

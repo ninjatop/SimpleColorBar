@@ -16,7 +16,7 @@ public class SingleImgToFile extends MediaToFile {
     private static final String TAG = "SingleImgToFile";//log tag
     private static final boolean VERBOSE = false;//是否记录详细log
     private static final int COLOR_TYPE=Matrix.COLOR_TYPE_RGB;
-    private static BarcodeFormat barcodeFormat;
+    //private static BarcodeFormat barcodeFormat;
 
     private Handler processHandler;
 
@@ -25,13 +25,12 @@ public class SingleImgToFile extends MediaToFile {
      *
      * @param handler   实例
      */
-    public SingleImgToFile(Handler handler,BarcodeFormat format,String truthFilePath, String saveFilePath) {
+    public SingleImgToFile(Handler handler,String truthFilePath, String saveFilePath) {
         super(handler);
-        barcodeFormat=format;
         ProcessFrame processFrame=new ProcessFrame("process");
         processFrame.start();
         processHandler=new Handler(processFrame.getLooper(), processFrame);
-        processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_BARCODE_FORMAT,format));
+        //processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_BARCODE_FORMAT,format));
         if(!truthFilePath.equals("")) {
             processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_TRUTH_FILE_PATH,truthFilePath));
         }

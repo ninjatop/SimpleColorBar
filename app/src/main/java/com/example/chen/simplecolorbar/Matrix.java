@@ -32,13 +32,13 @@ public class Matrix {
     protected Point [][] points;
     protected int deltaNum = 4;//变化的数目
     protected int bitsPerBlock = 2;//每个小方块的bit数
-    //这里是临时变量
+
     int ecNum;
     int ecLength = 12;//一个symbol对应bit数目,应与RS的decoder参数保持一致
     protected double ecLevel = 0.1;//%20用来纠错
     protected int[] borders;//上一次的border坐标
     protected int frameBitNum ;//每一帧的bit总数目
-//临时！！！！！！！！！！！！！！！！！！！！！！！！
+
     public Matrix(){
         frameBitNum = contentHeight * contentWidth * bitsPerBlock * this.deltaNum / (this.deltaNum + 1);
         ecNum = calcEcNum(ecLevel);

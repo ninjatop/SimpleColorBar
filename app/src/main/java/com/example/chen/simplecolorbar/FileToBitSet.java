@@ -38,8 +38,8 @@ public class FileToBitSet {
     private int ecLength;
     private BitSet[] packets;
     final double REPAIR_PERCENT;
-    public FileToBitSet(BarcodeFormat barcodeFormat,String filePath){
-        Matrix matrix = MatrixFactory.createMatrix(barcodeFormat);
+    public FileToBitSet(String filePath){
+        Matrix matrix = new Matrix();
         bitsPerBlock=matrix.bitsPerBlock;
         contentWidth=matrix.contentWidth;
         contentHeight=matrix.contentHeight;

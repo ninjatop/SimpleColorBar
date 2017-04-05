@@ -15,10 +15,9 @@ public class Statistics {
     List<RawContent> rawContentList;
     FileToBitSet truthBitSet;
     FECParameters parameters;
-    BarcodeFormat barcodeFormat;
     Matrix matrix;
 
-    private static final int FRAME_RATE=30;
+    private static final int FRAME_RATE = 30;
 
     private int firstFrameIndex;
     private int lastFrameIndex;
@@ -26,8 +25,8 @@ public class Statistics {
     public void loadRawContentList(List<RawContent> rawContentList){
         this.rawContentList=rawContentList;
     }
-    public void loadTruthFile(String truthFilePath, BarcodeFormat barcodeFormat){
-        truthBitSet=new FileToBitSet(barcodeFormat,truthFilePath);
+    public void loadTruthFile(String truthFilePath){
+        truthBitSet=new FileToBitSet(truthFilePath);
     }
     public void loadFECParameters(FECParameters parameters){
         this.parameters=parameters;
@@ -41,10 +40,7 @@ public class Statistics {
     public void setLastEsi(int esi){
         lastEsi=esi;
     }
-    public void setBarcodeFormat(BarcodeFormat barcodeFormat){
-        this.barcodeFormat=barcodeFormat;
-        matrix=MatrixFactory.createMatrix(barcodeFormat);
-    }
+
     public void doStat(){
         int countSuccDecode=0;
         int countBitError=0;
