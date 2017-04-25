@@ -86,12 +86,12 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
                 System.out.print("stream size is " + stream.size());
                 Bitmap bmp = BitmapFactory.decodeByteArray(img, 0, img.length);
 
-                String tempName = Environment.getExternalStorageDirectory()+"/abc/test7/time/"+frameCount+"1.jpg";
+/*                String tempName = Environment.getExternalStorageDirectory()+"/abc/test7/time/"+frameCount+"1.jpg";
                 FileOutputStream stream2 = new FileOutputStream(tempName);
                 bmp.compress(Bitmap.CompressFormat.JPEG,90,stream2);
 
-                stream2.close();
-                //stream.close();
+                stream2.close();*/
+                stream.close();
                 time3 = System.currentTimeMillis();
                 solve = new solvePicture(bmp, borders);
 

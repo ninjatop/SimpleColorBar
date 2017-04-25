@@ -33,7 +33,7 @@ public class solvePicture {
     public int []black;//黑色的值
     public int []white;//白色的值
     public int frameIndex = -1;//帧序号
-    public HistogramMatching histogram = new HistogramMatching();
+
 /*    public solvePicture(Bitmap bitmap) {
         this.img=bitmap;
         IntBuffer intBuffer = IntBuffer.allocate(img.getWidth()*img.getHeight());
@@ -129,10 +129,10 @@ public class solvePicture {
                         switch(colorType % 4){
                             case 0:break;
                             case 1:
-                                content.set(index);
+                                content.set(index + 1);
                                 break;
                             case 2:
-                                content.set(index+1);
+                                content.set(index);
                                 break;
                             case 3:
                                 content.set(index);
@@ -165,33 +165,7 @@ public class solvePicture {
         printLocation();
         return content;
     }
-    public void matchHistogram(){
-        int []content = new int[matrix.contentWidth * matrix.contentHeight * 4 / 5];
-        StringBuffer buffer = new StringBuffer();
-        int index = 0;
-        int []compare = new int [this.deltaNum+1];
-        for(int i =2;i<this.matrix.contentHeight; i+= this.deltaNum + 1){
-            for(int j =2;j<this.matrix.contentWidth;j += this.deltaNum + 1){
-                for(int row =1;row < this.deltaNum + 1; row++)
-                    for(int line = 0;line < this.deltaNum + 1; line++){
-                        int []temp = getRGB(get(i+row,j+line));
-                        if(this.frameIndex %2 == 0)
-                            buffer.append(temp[0]+",");
-                        else
-                            buffer.append(temp[1]+",");
-                    }
-            }
-        }
-        String []data = buffer.toString().split(",");
-        for(int i = 0; i < data.length ; i++){
-            content[i] = Integer.parseInt(data[i]);
-        }
-        histogram.HistogramMatching(content,"abc/test1/0.txt");
 
-
-
-
-    }
 
 
     public void initBlackAndWhite(){

@@ -198,8 +198,8 @@ public class VideoToFrames implements Runnable {
                             e.printStackTrace();
                         }
                     }
-                    String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d.jpg", outputFrameCount));
-                    compressToJpeg(fileName, image);
+/*                    String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d.jpg", outputFrameCount));
+                    compressToJpeg(fileName, image);*/
                     //这里是保存图片的部分
                     /*if (outputImageFormat != null) {
                         String fileName;

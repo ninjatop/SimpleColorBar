@@ -70,6 +70,8 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
         rawContentList=new ArrayList<>();
         IS_RAPTORQ_ENABLE = true;
         IS_STATISTIC_ENABLE = false;
+        matrix = new Matrix();
+        decoder = new ReedSolomonDecoder(selectRSLengthParam(matrix.ecLength));
         //PropertiesReader propertiesReader=new PropertiesReader();
         //IS_RAPTORQ_ENABLE Boolean.parseBoolean(propertiesReader.getProperty("RaptorQ.enable"));
         /*IS_STATISTIC_ENABLE=Boolean.parseBoolean(propertiesReader.getProperty("statistic.enable"));

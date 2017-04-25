@@ -5,9 +5,13 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -22,6 +26,8 @@ import android.widget.ToggleButton;
 //import com.j256.simplemagic.ContentInfo;
 //import com.j256.simplemagic.ContentInfoUtil;
 
+import java.io.File;
+import java.net.URLConnection;
 import java.util.UUID;
 
 public class MainActivity extends Activity {
@@ -229,18 +235,20 @@ public class MainActivity extends Activity {
         String path = "";
         switch (requestCode){
             case REQUEST_CODE_FILE_PATH_INPUT:
-                id=R.id.file_path_input;
-                /*String[] proj = {MediaStore.Images.Media.DATA};
-
-                //好像是Android多媒体数据库的封装接口，具体的看Android文档
-                Cursor cursor = managedQuery(data.getData(), proj, null, null, null);
-                //按我个人理解 这个是获得用户选择的图片的索引值
-                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                //将光标移至开头 ，这个很重要，不小心很容易引起越界
-                cursor.moveToFirst();
-                //最后根据索引值获取图片路径
-                path = cursor.getString(column_index);*/
-                path = data.getData().getPath();
+                id = R.id.file_path_input;
+                if( data != null)
+                    path = data.getData().getPath();//这里是转换媒体的内部路径和绝对路径
+                if(path.contains("external")){
+                    String[] proj = {MediaStore.Images.Media.DATA};
+                    //好像是Android多媒体数据库的封装接口，具体的看Android文档
+                    Cursor cursor = managedQuery(data.getData(), proj, null, null, null);
+                    //按我个人理解 这个是获得用户选择的图片的索引值
+                    int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                    //将光标移至开头 ，这个很重要，不小心很容易引起越界
+                    cursor.moveToFirst();
+                    //最后根据索引值获取图片路径
+                    path = cursor.getString(column_index);
+                }
 
                 break;
             case REQUEST_CODE_FILE_PATH_TRUTH:
@@ -303,7 +311,7 @@ public class MainActivity extends Activity {
      *
      * @param view 默认参数
      */
-  /*  public void openFile(View view) {
+  public void openFile(View view) {
         EditText editTextFileName = (EditText) findViewById(R.id.file_name_created);
         String originFileName = editTextFileName.getText().toString();
         File file=new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),originFileName);
@@ -326,6 +334,7 @@ public class MainActivity extends Activity {
                     .show();
         }
     }
+
     private File correctFileExtension(File file){
         String originFileName = file.getName();
         int lastSeparatorIndex=originFileName.lastIndexOf('.');
@@ -335,7 +344,7 @@ public class MainActivity extends Activity {
             fileNameWithoutExtension=originFileName.substring(0,lastSeparatorIndex);
             originExtension=originFileName.substring(lastSeparatorIndex+1);
         }
-        String correctedExtension=getFileExtension(file);
+        String correctedExtension = getFileExtension(file);
         if(!correctedExtension.equals(originExtension)){
             String correctedFileName=fileNameWithoutExtension+"."+correctedExtension;
             File newFile=new File(file.getParent(),correctedFileName);
@@ -343,7 +352,12 @@ public class MainActivity extends Activity {
             file=newFile;
         }
         return file;
-    }*/
+    }
+    public String getFileExtension(File file){
+        String filename = file.getName();
+        return filename.substring(filename.lastIndexOf(".") + 1);
+
+    }
 
     public void processCamera(View view){
         final CameraPreviewFragment fragment=new CameraPreviewFragment();
