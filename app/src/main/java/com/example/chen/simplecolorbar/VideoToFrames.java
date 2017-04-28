@@ -181,27 +181,16 @@ public class VideoToFrames implements Runnable {
                         callback.onDecodeFrame(outputFrameCount);
                     }
                     Image image = decoder.getOutputImage(outputBufferId);
-                    isImageFormatSupported(image);
-                    //System.out.println("image format: " + image.getFormat());
-
-                    //ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    Rect rect = image.getCropRect();
-                    YuvImage yuvImage = new YuvImage(getDataFromImage(image, COLOR_FormatNV21), ImageFormat.NV21, rect.width(), rect.height(), null);
-                    yuvImage.compressToJpeg(rect, 100, stream);
-                    byte[] arr = stream.toByteArray();
-                    //buffer.get(arr);
                     if (mQueue != null) {
                         try {
-                            mQueue.put(arr);
+                            mQueue.put(getDataFromImage(image,COLOR_FormatI420));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-/*                    String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d.jpg", outputFrameCount));
-                    compressToJpeg(fileName, image);*/
-                    //这里是保存图片的部分
-                    /*if (outputImageFormat != null) {
+
+
+                    if (outputImageFormat != null) {
                         String fileName;
                         switch (outputImageFormat) {
                             case I420:
@@ -217,7 +206,7 @@ public class VideoToFrames implements Runnable {
                                 compressToJpeg(fileName, image);
                                 break;
                         }
-                    }*/
+                    }
                     image.close();
                     decoder.releaseOutputBuffer(outputBufferId, true);
                 }

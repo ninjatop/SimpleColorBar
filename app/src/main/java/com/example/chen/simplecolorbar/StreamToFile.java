@@ -62,7 +62,7 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
         solvePicture solve = null;
         while (onDecodeFlag) {
             long time1 = System.currentTimeMillis();
-            long time2 =0; long time3 =0; long time4=0;
+
             frameCount++;
             updateInfo("正在识别...");
             try {
@@ -79,27 +79,23 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
             Log.i(TAG,"processing frame: "+frameCount);
             try {
                 //处理每个帧!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                time2 = System.currentTimeMillis();
+
                 YuvImage image = new YuvImage(img, ImageFormat.NV21, frameWidth, frameHeight, null);
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 image.compressToJpeg(new Rect(0, 0, frameWidth, frameHeight), 80, stream);
                 System.out.print("stream size is " + stream.size());
                 Bitmap bmp = BitmapFactory.decodeByteArray(img, 0, img.length);
 
-/*                String tempName = Environment.getExternalStorageDirectory()+"/abc/test7/time/"+frameCount+"1.jpg";
-                FileOutputStream stream2 = new FileOutputStream(tempName);
-                bmp.compress(Bitmap.CompressFormat.JPEG,90,stream2);
 
-                stream2.close();*/
                 stream.close();
-                time3 = System.currentTimeMillis();
+
                 solve = new solvePicture(bmp, borders);
 
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
-            //System.out.println("each frame take " + (time2 - time1)+"\t"+(time3 - time2) +"\t"+(time4 - time3));
+
 
             if(fileByteNum == -1){
                 try {
