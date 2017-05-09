@@ -29,7 +29,7 @@ public class VideoToFile extends StreamToFile {
     }
     public void toFile(String fileName,final String videoFilePath){
         if(VERBOSE){Log.i(TAG,"process video file");}
-        final LinkedBlockingQueue<byte[]> frameQueue = new LinkedBlockingQueue<>();
+        final LinkedBlockingQueue<RawImage> frameQueue = new LinkedBlockingQueue<>();
         int[] widthAndHeight= getVideoWidthAndHeight(videoFilePath);
         int frameWidth=widthAndHeight[0];
         int frameHeight=widthAndHeight[1];

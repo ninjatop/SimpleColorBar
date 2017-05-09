@@ -1,9 +1,15 @@
 package com.example.chen.simplecolorbar;
 
+import android.util.Log;
+
+import java.util.Arrays;
+
 /**
  * Created by CHEN on 2017/4/27.
  */
 public class RawImage {
+    public static final boolean VERBOSE = true;//是否记录详细log
+    protected static final String TAG = "RawImage";//log tag
     public static final int COLOR_TYPE_YUV=0;
     public static final int COLOR_TYPE_RGB=1;
 
@@ -18,7 +24,7 @@ public class RawImage {
     private int height;
     private int colorType;
     private int index;
-    private long timestamp;
+
 
     private int[] thresholds;
 
@@ -28,18 +34,20 @@ public class RawImage {
     private int offsetV;
     public RawImage(){}
     public RawImage(byte[] pixels,int width,int height,int colorType){
-        this(pixels,width,height,colorType,0,0);
+        this(pixels,width,height,colorType,0);
     }
-    public RawImage(byte[] pixels,int width,int height,int colorType,int index,long timestamp){
+    public RawImage(byte[] pixels,int width,int height,int colorType,int index){
         this.pixels=pixels;
         this.width=width;
         this.height=height;
         this.colorType=colorType;
         this.index=index;
-        this.timestamp=timestamp;
-        thresholds=new int[3];
-        offsetU=width*height;
-        offsetV=width*height+width*height/4;
+        thresholds = new int[3];
+        thresholds[0] = 120;//这里是定义了YUV的初始阈值
+        thresholds[1] = 120;
+        thresholds[2] = 120;
+        offsetU=width * height;
+        offsetV=width * height + width * height/4;
     }
     public int getPixel(int x,int y,int channel){
         switch (channel){
@@ -60,6 +68,182 @@ public class RawImage {
         int up = height / 2 - init;
         int down = height / 2 + init;
         return new int[] {left,up,right,down};
+    }
+    public int[] getBarcodeVertexes(int[] initRectangle,int channel) throws NotFoundException{
+        int[] whiteRectangle=findWhiteRectangle(initRectangle,channel);
+        System.out.println("white rectangle: "+ Arrays.toString(whiteRectangle));
+        rectangle = whiteRectangle;
+        //int[]whiteRectangle=findWhiteRectangle1(null);
+        //return findVertexesFromWhiteRectangle1(whiteRectangle);
+        return findVertexesFromWhiteRectangle(whiteRectangle);
+        //return findVertexesFromWhiteRectangle3(whiteRectangle);
+    }
+    public byte[] getPixels(){
+        return pixels;
+    }
+    private int[] findWhiteRectangle(int[] initRectangle,int channel) throws NotFoundException {
+        if(initRectangle==null){
+            initRectangle=genInitBorder();
+        }
+        int left=initRectangle[0];
+        int up=initRectangle[1];
+        int right=initRectangle[2];
+        int down=initRectangle[3];
+        int leftOrig = left;
+        int rightOrig = right;
+        int upOrig = up;
+        int downOrig = down;
+        if (left < 0 || right >= width || up < 0 || down >= height) {
+            throw new NotFoundException("frame size too small");
+        }
+        boolean flag;
+        while (true) {
+            flag = false;
+            while (right < width && contains(up, down, right, false,channel,0)) {
+                right++;
+                flag = true;
+
+            }
+            while (down < height && contains(left, right, down, true,channel,0)) {
+                down++;
+                flag = true;
+            }
+            while (left > 0 && contains(up, down, left, false,channel,0)) {
+                left--;
+                flag = true;
+            }
+            while (up > 0 && contains(left, right, up, true,channel,0)) {
+                up--;
+                flag = true;
+            }
+            if (!flag) {
+                break;
+            }
+        }
+        if ((left == 0 || up == 0 || right == width || down == height) || (left == leftOrig && right == rightOrig && up == upOrig && down == downOrig)) {
+            throw new NotFoundException("didn't find any possible bar code: "+left+" "+up+" "+right+" "+down);
+        }
+        return new int[]{left,up,right,down};
+    }
+    private int[] findVertexesFromWhiteRectangle(int[] whiteRectangle){
+        int channel=0;
+        boolean greater=true;
+        int left=whiteRectangle[0];
+        int up=whiteRectangle[1];
+        int right=whiteRectangle[2];
+        int down=whiteRectangle[3];
+        System.out.println(left+" "+up+" "+right+" "+down);
+
+        int[] vertexes=new int[8];
+        int length=Math.min(right-left,down-up);
+        boolean flag=false;
+        for(int startX=left,startY=up;startY-up<length;startY++){
+            for(int currentX=startX,currentY=startY;currentY>=up;currentX++,currentY--){
+                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                    vertexes[0]=currentX;
+                    vertexes[1]=currentY;
+                    flag=true;
+                    break;
+                }
+            }
+            if(flag){
+                break;
+            }
+        }
+        flag=false;
+        for(int startX=right,startY=up;right-startX<length;startX--){
+            for(int currentX=startX,currentY=startY;currentX<=right;currentX++,currentY++){
+                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                    vertexes[2]=currentX;
+                    vertexes[3]=currentY;
+                    flag=true;
+                    break;
+                }
+            }
+            if(flag){
+                break;
+            }
+        }
+        flag=false;
+        for(int startX=right,startY=down;right-startX<length;startX--){
+            for(int currentX=startX,currentY=startY;currentX<=right;currentX++,currentY--){
+                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                    vertexes[4]=currentX;
+                    vertexes[5]=currentY;
+                    flag=true;
+                    break;
+                }
+            }
+            if(flag){
+                break;
+            }
+        }
+        flag=false;
+        for(int startX=left,startY=down;down-startY<length;startY--){
+            for(int currentX=startX,currentY=startY;currentY<=down;currentX++,currentY++){
+                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                    vertexes[6]=currentX;
+                    vertexes[7]=currentY;
+                    flag=true;
+                    break;
+                }
+            }
+            if(flag){
+                break;
+            }
+        }
+        if (VERBOSE) {
+            Log.d(TAG, "vertexes: (" + vertexes[0] + "," + vertexes[1] + ")\t(" + vertexes[2] + "," + vertexes[3] + ")\t(" + vertexes[4] + "," + vertexes[5] + ")\t(" + vertexes[6] + "," + vertexes[7] + ")");
+        }
+        return vertexes;
+    }
+    private boolean isSinglePoint(int x,int y,int channel){
+        int countSame=0;
+        int value=getBinary(x,y,channel);
+        for(int i=-1;i<2;i++){
+            for(int j=-1;j<2;j++){
+                int get=getBinary(x+i,y+j,channel);
+                if(value==get){
+                    countSame++;
+                }
+            }
+        }
+        return countSame<=2;
+    }
+    private boolean contains(int start, int end, int fixed, boolean horizontal,int channel,int shouldBe) {
+        if (horizontal) {
+            for (int x = start; x <= end; x++) {
+                if(pixelEquals(x,fixed,channel,shouldBe)&&pixelEquals(x+1,fixed,channel,shouldBe)&&pixelEquals(x-1,fixed,channel,shouldBe)&&pixelEquals(x+2,fixed,channel,shouldBe)&&pixelEquals(x-2,fixed,channel,shouldBe)){
+                    return true;
+                }
+            }
+        } else {
+            for (int y = start; y <= end; y++) {
+                if(pixelEquals(fixed,y,channel,shouldBe)&&pixelEquals(fixed,y+1,channel,shouldBe)&&pixelEquals(fixed,y-1,channel,shouldBe)&&pixelEquals(fixed,y+2,channel,shouldBe)&&pixelEquals(fixed,y-2,channel,shouldBe)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private boolean pixelEquals(int x, int y,int channel, int pixel){
+        return getBinary(x,y,channel)==pixel;
+    }
+    public int getBinary(int x,int y,int channel){
+        if(getPixel(x,y,channel) >= thresholds[channel]){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+    public int getWidth(){
+        return this.width;
+    }
+    public int getHeight(){return this.height; }
+    public int[]getThresholds(){return this.thresholds;}
+    @Override
+    public String toString() {
+        return width+"x"+height+" color type "+colorType+" index "+index;
     }
 
 

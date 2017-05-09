@@ -53,7 +53,7 @@ public class SingleImgToFile extends MediaToFile {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
-        solvePicture solve = new solvePicture(bitmap, borders);
+        oldsolve solve = new oldsolve(bitmap, borders);
 /*        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bitmap.getWidth() * bitmap.getHeight() * 4);
         bitmap.copyPixelsToBuffer(byteBuffer);
         bitmap.recycle();*/
@@ -63,7 +63,7 @@ public class SingleImgToFile extends MediaToFile {
         int fileByteNum;
 
         try {
-            fileByteNum = getFileByteNum(solve.matrix);
+            fileByteNum = getFileByteNum(solve.matrix.getHead());
         }catch (CRCCheckException e){
             Log.d(TAG, "head CRC check failed");
             return;

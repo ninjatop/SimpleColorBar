@@ -20,8 +20,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private static final String TAG = "CameraPreview";//log tag
     private SurfaceHolder mHolder;
     private Camera mCamera;
-    private LinkedBlockingQueue<byte[]> frames;
+    private LinkedBlockingQueue<RawImage> frames;
     private boolean pause;
+    Camera.Size previewSize;
 
     public CameraPreview(Context context) {
         super(context);
@@ -29,7 +30,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mHolder = getHolder();
         mHolder.addCallback(this);
     }
-    public void start(LinkedBlockingQueue<byte[]> frames){
+    public void start(LinkedBlockingQueue<RawImage> frames){
         this.frames=frames;
         pause=false;
     }
@@ -109,7 +110,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     public void onPreviewFrame(byte[] data, Camera camera) {
         if (!pause) {
             try {
-                frames.put(data);
+                frames.put(new RawImage(data,previewSize.width,previewSize.height,RawImage.COLOR_TYPE_YUV));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

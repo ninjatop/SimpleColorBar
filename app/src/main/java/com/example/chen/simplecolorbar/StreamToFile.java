@@ -47,22 +47,20 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
         /*onDecodeFlag = false;
         updateInfo("识别成功！");*/
     }
-    protected void streamToFile(LinkedBlockingQueue<byte[]> imgs,int frameWidth,int frameHeight,String fileName) {
+    protected void streamToFile(LinkedBlockingQueue<RawImage> imgs,int frameWidth,int frameHeight,String fileName) {
         processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_FILE_NAME,fileName));
         final int NUMBER_OF_SOURCE_BLOCKS=1;
         int fileByteNum=-1;
         int frameCount = -1;
         int lastSuccessIndex = 0;
         int frameAmount = 0;
-        byte[] img = {};
+        RawImage img = null;
 
-        //Matrix matrix = null;
+
         int[] borders = null;//用来保存边界情况
         int imgColorType = getImgColorType();
         solvePicture solve = null;
         while (onDecodeFlag) {
-            long time1 = System.currentTimeMillis();
-
             frameCount++;
             updateInfo("正在识别...");
             try {
@@ -77,29 +75,12 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
             }
             updateDebug(lastSuccessIndex, frameAmount, frameCount);
             Log.i(TAG,"processing frame: "+frameCount);
-            try {
-                //处理每个帧!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-                YuvImage image = new YuvImage(img, ImageFormat.NV21, frameWidth, frameHeight, null);
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                image.compressToJpeg(new Rect(0, 0, frameWidth, frameHeight), 80, stream);
-                System.out.print("stream size is " + stream.size());
-                Bitmap bmp = BitmapFactory.decodeByteArray(img, 0, img.length);
-
-
-                stream.close();
-
-                solve = new solvePicture(bmp, borders);
-
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            //处理每个帧!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            solve = new solvePicture(img, borders);
 
             if(fileByteNum == -1){
                 try {
-                    fileByteNum = getFileByteNum(solve.matrix);
+                    fileByteNum = getFileByteNum(solve.getHead());
                 }catch (CRCCheckException e){
                     Log.d(TAG, "head CRC check failed");
                     crcCheckFailed();
@@ -111,7 +92,7 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
                     continue;
                 }
                 Log.i(TAG,"file is "+fileByteNum+" bytes");
-                int length=solve.matrix.realContentByteLength();
+                int length=solve.realContentByteLength();
                 FECParameters parameters = FECParameters.newParameters(fileByteNum, length, NUMBER_OF_SOURCE_BLOCKS);
                 Log.i(TAG,"FEC parameters: "+ parameters.toString());
                 processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_FEC_PARAMETERS,parameters));
@@ -119,7 +100,7 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
             BitSet content = solve.getContent();
             //rawContent.frameIndex=frameCount;
             processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_RAW_CONTENT,content));
-            borders = smallBorder(solve.matrix.borders);
+            borders = smallBorder(solve.borders);
             //beforeDataDecoded();
         }
     }

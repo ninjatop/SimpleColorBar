@@ -50,8 +50,7 @@ public class MediaToFile{
         msg.obj=text;
         handler.sendMessage(msg);
     }
-    public int getFileByteNum(Matrix matrix) throws CRCCheckException{
-        BitSet head=matrix.getHead();
+    public int getFileByteNum(BitSet head) throws CRCCheckException{
         int intLength=32;
         int byteLength=8;
         int index=0;

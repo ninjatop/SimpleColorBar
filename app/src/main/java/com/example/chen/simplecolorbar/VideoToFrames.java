@@ -32,7 +32,7 @@ public class VideoToFrames implements Runnable {
 
     private static final int decodeColorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible;
     //private static final int decodeColorFormat = MediaCodecInfo.CodecCapabilities.COLOR_Format;
-    private LinkedBlockingQueue<byte[]> mQueue;
+    private LinkedBlockingQueue<RawImage> mQueue;
     private OutputImageFormat outputImageFormat;
     private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test1/10fps/";
     private boolean stopDecode = false;
@@ -50,7 +50,7 @@ public class VideoToFrames implements Runnable {
     public void setCallback(Callback callback){
         this.callback=callback;
     }
-    public void setEnqueue(LinkedBlockingQueue<byte[]> queue) {
+    public void setEnqueue(LinkedBlockingQueue<RawImage> queue) {
         mQueue = queue;
     }
 
@@ -183,14 +183,17 @@ public class VideoToFrames implements Runnable {
                     Image image = decoder.getOutputImage(outputBufferId);
                     if (mQueue != null) {
                         try {
-                            mQueue.put(getDataFromImage(image,COLOR_FormatI420));
+                            mQueue.put(new RawImage(getDataFromImage(image,COLOR_FormatI420),width,height,RawImage.COLOR_TYPE_YUV,outputFrameCount));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
 
+                    /*String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d.jpg", outputFrameCount));
+                    compressToJpeg(fileName, image);*/
 
-                    if (outputImageFormat != null) {
+                    //图片的存储
+                    /*if (outputImageFormat != null) {
                         String fileName;
                         switch (outputImageFormat) {
                             case I420:
@@ -206,7 +209,7 @@ public class VideoToFrames implements Runnable {
                                 compressToJpeg(fileName, image);
                                 break;
                         }
-                    }
+                    }*/
                     image.close();
                     decoder.releaseOutputBuffer(outputBufferId, true);
                 }
