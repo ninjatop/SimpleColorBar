@@ -34,7 +34,7 @@ public class VideoToFrames implements Runnable {
     //private static final int decodeColorFormat = MediaCodecInfo.CodecCapabilities.COLOR_Format;
     private LinkedBlockingQueue<RawImage> mQueue;
     private OutputImageFormat outputImageFormat;
-    private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test1/10fps/";
+    private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test2/10fps/";
     private boolean stopDecode = false;
 
     private String videoFilePath;
@@ -191,6 +191,8 @@ public class VideoToFrames implements Runnable {
 
                     /*String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d.jpg", outputFrameCount));
                     compressToJpeg(fileName, image);*/
+                    /*String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d_I420_%dx%d.yuv", outputFrameCount, width, height));
+                    dumpFile(fileName, getDataFromImage(image, COLOR_FormatI420));*/
 
                     //图片的存储
                     /*if (outputImageFormat != null) {

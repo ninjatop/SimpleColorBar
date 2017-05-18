@@ -43,7 +43,7 @@ public class RawImage {
         this.colorType=colorType;
         this.index=index;
         thresholds = new int[3];
-        thresholds[0] = 120;//这里是定义了YUV的初始阈值
+        thresholds[0] = 150;//这里是定义了YUV的初始阈值
         thresholds[1] = 120;
         thresholds[2] = 120;
         offsetU=width * height;
@@ -61,8 +61,11 @@ public class RawImage {
                 throw new IllegalArgumentException();
         }
     }
+    public int []getPixel(int x, int y){
+        return new int[]{pixels[y * width + x] & 0xff, pixels[offsetU+y/2*(width/2)+x/2] & 0xff, pixels[offsetV+y/2*(width/2)+x/2] & 0xff};
+    }
     private int[] genInitBorder(){
-        int init = 300;
+        int init = 100;
         int left = width / 2 - init;
         int right = width / 2 + init;
         int up = height / 2 - init;
@@ -213,7 +216,7 @@ public class RawImage {
     private boolean contains(int start, int end, int fixed, boolean horizontal,int channel,int shouldBe) {
         if (horizontal) {
             for (int x = start; x <= end; x++) {
-                if(pixelEquals(x,fixed,channel,shouldBe)&&pixelEquals(x+1,fixed,channel,shouldBe)&&pixelEquals(x-1,fixed,channel,shouldBe)&&pixelEquals(x+2,fixed,channel,shouldBe)&&pixelEquals(x-2,fixed,channel,shouldBe)){
+                if(pixelEquals(x,fixed,channel,shouldBe) && pixelEquals(x+1,fixed,channel,shouldBe)&&pixelEquals(x-1,fixed,channel,shouldBe)&&pixelEquals(x+2,fixed,channel,shouldBe)&&pixelEquals(x-2,fixed,channel,shouldBe)){
                     return true;
                 }
             }
@@ -227,7 +230,7 @@ public class RawImage {
         return false;
     }
     private boolean pixelEquals(int x, int y,int channel, int pixel){
-        return getBinary(x,y,channel)==pixel;
+        return getBinary(x,y,channel) == pixel;
     }
     public int getBinary(int x,int y,int channel){
         if(getPixel(x,y,channel) >= thresholds[channel]){
@@ -241,6 +244,7 @@ public class RawImage {
     }
     public int getHeight(){return this.height; }
     public int[]getThresholds(){return this.thresholds;}
+    public int[]getRectangle(){return this.rectangle;}
     @Override
     public String toString() {
         return width+"x"+height+" color type "+colorType+" index "+index;
