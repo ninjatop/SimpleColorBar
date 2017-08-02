@@ -43,9 +43,10 @@ public class RawImage {
         this.colorType=colorType;
         this.index=index;
         thresholds = new int[3];
-        thresholds[0] = 120;//这里是定义了YUV的初始阈值
+        thresholds[0] = 150;//这里是定义了YUV的初始阈值
         thresholds[1] = 120;
         thresholds[2] = 120;
+        //initThreshold();
         offsetU=width * height;
         offsetV=width * height + width * height/4;
     }
@@ -62,12 +63,35 @@ public class RawImage {
         }
     }
     private int[] genInitBorder(){
-        int init = 300;
+        int init = 200;
         int left = width / 2 - init;
         int right = width / 2 + init;
         int up = height / 2 - init;
         int down = height / 2 + init;
         return new int[] {left,up,right,down};
+    }
+    public void initThreshold(){
+        thresholds = new int[3];
+        int startx = (int)(this.width * 0.2);
+        int endx = this.width - startx;
+        int y1 = (int)(this.height * 0.3);
+        int y2 = y1 *2;
+        int []sum = new int[]{0,0,0};
+        int count = 0;
+        for(int x = startx; x < endx; x+=3){
+            for(int i =0; i< 3;i++){
+                sum[i] += getPixel(x,y1,i);
+                sum[i] += getPixel(x,y2,i);
+            }
+            count ++;
+        }
+        for(int i = 0; i <3; i++){
+            thresholds[i] = sum[i]/count/2;
+        }
+        thresholds[0] += 20;
+        thresholds[1] += 20;
+        thresholds[2] += 20;
+
     }
     public int[] getBarcodeVertexes(int[] initRectangle,int channel) throws NotFoundException{
         int[] whiteRectangle=findWhiteRectangle(initRectangle,channel);
@@ -99,20 +123,20 @@ public class RawImage {
         boolean flag;
         while (true) {
             flag = false;
-            while (right < width && contains(up, down, right, false,channel,0)) {
+            while (right < width && contains(up, down, right, false,0)) {
                 right++;
                 flag = true;
 
             }
-            while (down < height && contains(left, right, down, true,channel,0)) {
+            while (down < height && contains(left, right, down, true/*,channel*/,0)) {
                 down++;
                 flag = true;
             }
-            while (left > 0 && contains(up, down, left, false,channel,0)) {
+            while (left > 0 && contains(up, down, left, false/*,channel*/,0)) {
                 left--;
                 flag = true;
             }
-            while (up > 0 && contains(left, right, up, true,channel,0)) {
+            while (up > 0 && contains(left, right, up, true/*,channel*/,0)) {
                 up--;
                 flag = true;
             }
@@ -139,7 +163,7 @@ public class RawImage {
         boolean flag=false;
         for(int startX=left,startY=up;startY-up<length;startY++){
             for(int currentX=startX,currentY=startY;currentY>=up;currentX++,currentY--){
-                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                if(pixelEquals(currentX,currentY,0,0)/*&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)*/){
                     vertexes[0]=currentX;
                     vertexes[1]=currentY;
                     flag=true;
@@ -153,7 +177,7 @@ public class RawImage {
         flag=false;
         for(int startX=right,startY=up;right-startX<length;startX--){
             for(int currentX=startX,currentY=startY;currentX<=right;currentX++,currentY++){
-                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                if(pixelEquals(currentX,currentY,0,0)/*&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)*/){
                     vertexes[2]=currentX;
                     vertexes[3]=currentY;
                     flag=true;
@@ -167,7 +191,7 @@ public class RawImage {
         flag=false;
         for(int startX=right,startY=down;right-startX<length;startX--){
             for(int currentX=startX,currentY=startY;currentX<=right;currentX++,currentY--){
-                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                if(pixelEquals(currentX,currentY,0,0)/*&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)*/){
                     vertexes[4]=currentX;
                     vertexes[5]=currentY;
                     flag=true;
@@ -181,7 +205,7 @@ public class RawImage {
         flag=false;
         for(int startX=left,startY=down;down-startY<length;startY--){
             for(int currentX=startX,currentY=startY;currentY<=down;currentX++,currentY++){
-                if(pixelEquals(currentX,currentY,0,0)&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)){
+                if(pixelEquals(currentX,currentY,0,0)/*&&pixelEquals(currentX,currentY,1,1)&&pixelEquals(currentX,currentY,2,1)*/){
                     vertexes[6]=currentX;
                     vertexes[7]=currentY;
                     flag=true;
@@ -210,6 +234,22 @@ public class RawImage {
         }
         return countSame<=2;
     }
+    private boolean contains(int start, int end, int fixed, boolean horizontal,int shouldBe) {
+        if (horizontal) {
+            for (int x = start; x <= end; x++) {
+                if(pixelEquals(x,fixed,0,shouldBe)||pixelEquals(x,fixed,1,shouldBe)||pixelEquals(x,fixed,2,shouldBe)){
+                    return true;
+                }
+            }
+        } else {
+            for (int y = start; y <= end; y++) {
+                if(pixelEquals(fixed,y,0,shouldBe)||pixelEquals(fixed,y,1,shouldBe)||pixelEquals(fixed,y,2,shouldBe)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     private boolean contains(int start, int end, int fixed, boolean horizontal,int channel,int shouldBe) {
         if (horizontal) {
             for (int x = start; x <= end; x++) {
@@ -227,10 +267,13 @@ public class RawImage {
         return false;
     }
     private boolean pixelEquals(int x, int y,int channel, int pixel){
+        int a = getBinary(x,y,channel);
         return getBinary(x,y,channel)==pixel;
     }
     public int getBinary(int x,int y,int channel){
-        if(getPixel(x,y,channel) >= thresholds[channel]){
+        int value = getPixel(x,y,channel);
+        int a = thresholds[channel];
+        if(value >= a){
             return 1;
         }else{
             return 0;
@@ -241,6 +284,7 @@ public class RawImage {
     }
     public int getHeight(){return this.height; }
     public int[]getThresholds(){return this.thresholds;}
+    public int[]getRectangle(){return this.rectangle;}
     @Override
     public String toString() {
         return width+"x"+height+" color type "+colorType+" index "+index;

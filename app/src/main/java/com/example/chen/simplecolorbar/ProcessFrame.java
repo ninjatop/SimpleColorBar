@@ -44,7 +44,8 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
     private static boolean IS_STATISTIC_ENABLE;
 
     private List<RawContent> rawContentList;
-    private Matrix matrix;
+    //private Matrix matrix;
+    private solvePicture solve;
     private ArrayDataDecoder dataDecoder;
     private SourceBlockDecoder sourceBlock;
     private ReedSolomonDecoder decoder;
@@ -70,8 +71,8 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
         rawContentList=new ArrayList<>();
         IS_RAPTORQ_ENABLE = true;
         IS_STATISTIC_ENABLE = false;
-        matrix = new Matrix();
-        decoder = new ReedSolomonDecoder(selectRSLengthParam(matrix.ecLength));
+        solve = new solvePicture();
+        decoder = new ReedSolomonDecoder(selectRSLengthParam(solve.ecLength));
         //PropertiesReader propertiesReader=new PropertiesReader();
         //IS_RAPTORQ_ENABLE Boolean.parseBoolean(propertiesReader.getProperty("RaptorQ.enable"));
         /*IS_STATISTIC_ENABLE=Boolean.parseBoolean(propertiesReader.getProperty("statistic.enable"));
@@ -94,11 +95,11 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
         EncodingPacket encodingPacket;
         try {
             int[] conIn12 = BitSetToInt(content);
-            decoder.decode(conIn12, matrix.ecNum);
-            int realByteNum = matrix.RSContentByteLength();
+            decoder.decode(conIn12, solve.ecNum);
+            int realByteNum = solve.RSContentByteLength();
             byte[] raw = new byte[realByteNum];
             for(int i=0;i<raw.length * 8;i++){
-                if((conIn12[i/matrix.ecLength]&(1<<(i%matrix.ecLength)))>0){
+                if((conIn12[i/solve.ecLength]&(1<<(i%solve.ecLength)))>0){
                     raw[i/8]|=1<<(i%8);
                 }
             }
@@ -154,22 +155,22 @@ public class ProcessFrame extends HandlerThread implements Handler.Callback {
      * @return
      */
     private int[] BitSetToInt(BitSet content){
-        int numRealBits = matrix.frameBitNum ;
-        int[] con=new int[numRealBits / matrix.ecLength];
+        int numRealBits = solve.frameBitNum ;
+        int[] con=new int[numRealBits / solve.ecLength];
         for(int i=0;i < numRealBits;i++){
             if(content.get(i)){
-                con[i/matrix.ecLength] |= 1<<(i % matrix.ecLength);
+                con[i/solve.ecLength] |= 1<<(i % solve.ecLength);
             }
         }
         return con;
     }
     private byte[] getContent(BitSet content) throws ReedSolomonException {
         int[] rawContent=BitSetToInt(content);
-        int[] decodedContent=decode(rawContent,matrix.ecNum);
-        int realByteNum=matrix.RSContentByteLength();
+        int[] decodedContent=decode(rawContent,solve.ecNum);
+        int realByteNum=solve.RSContentByteLength();
         byte[] res=new byte[realByteNum];
         for(int i=0;i<res.length*8;i++){
-            if((decodedContent[i/matrix.ecLength]&(1<<(i%matrix.ecLength)))>0){
+            if((decodedContent[i/solve.ecLength]&(1<<(i%solve.ecLength)))>0){
                 res[i/8]|=1<<(i%8);
             }
         }
