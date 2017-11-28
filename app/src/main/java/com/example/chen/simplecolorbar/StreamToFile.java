@@ -76,6 +76,7 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
             updateDebug(lastSuccessIndex, frameAmount, frameCount);
             Log.i(TAG,"processing frame: "+frameCount);
             //处理每个帧!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            long start = System.currentTimeMillis();
             solve = new solvePicture(img, borders);
 
             if(fileByteNum == -1){
@@ -101,6 +102,8 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
             //rawContent.frameIndex=frameCount;
             processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_RAW_CONTENT,content));
             borders = smallBorder(solve.borders);
+            long end = System.currentTimeMillis();
+            System.out.print("time cost = "+ (end - start));
             //beforeDataDecoded();
         }
     }

@@ -25,7 +25,7 @@ public class VideoToFrames implements Runnable {
     private static final String TAG = "VideoToFrames";
     private static final boolean VERBOSE = false;
     private static final long DEFAULT_TIMEOUT_US = 10000;
-    private  static final boolean save = true;//是否保存
+    private  static final boolean save = false;//是否保存
 
     private static final int COLOR_FormatI420 = 1;
     private static final int COLOR_FormatNV21 = 2;
@@ -35,7 +35,7 @@ public class VideoToFrames implements Runnable {
     //private static final int decodeColorFormat = MediaCodecInfo.CodecCapabilities.COLOR_Format;
     private LinkedBlockingQueue<RawImage> mQueue;
     private OutputImageFormat outputImageFormat;
-    private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test3/30fps/";
+    private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test4/10fps/";
     private boolean stopDecode = false;
 
     private String videoFilePath;
@@ -194,6 +194,7 @@ public class VideoToFrames implements Runnable {
                     /*String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d.jpg", outputFrameCount));
                     compressToJpeg(fileName, image);*/
                     if(save) {
+
                         String fileName = Utils.combinePaths(OUTPUT_DIR, String.format("frame_%05d_I420_%dx%d.yuv", outputFrameCount, width, height));
                         dumpFile(fileName, getDataFromImage(image, COLOR_FormatI420));
                     }

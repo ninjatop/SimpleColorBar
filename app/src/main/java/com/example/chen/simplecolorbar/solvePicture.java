@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.IntBuffer;
 import java.util.BitSet;
+import java.util.Random;
 
 /** *
  * Created by CHEN on 2016/10/10.
@@ -22,6 +23,7 @@ import java.util.BitSet;
  */
 public class solvePicture {
     public static final String TAG = "solvePicture";
+    public static int countIndex = 0;//用来计数现在的处理的数目
     public  RawImage img;
     public int []rgbValue;
     public int []black;//黑色的值
@@ -78,24 +80,14 @@ public class solvePicture {
         perspectiveTransform();
         getRealLocation();
         //display();
-        try {
+        /*try {
             getFrameIndex();//获得帧序号
         }
         catch (CRCCheckException e){
             Log.d(TAG, "frameIndex CRC check failed");
-        }
+        }*/
     }
-    /*
-    for test
-     */
-    public void display(){
-        StringBuffer buffer = new StringBuffer();
-        for(int y= 0;y<60;y++)
-            buffer.append(4+"\t"+ y+"location:"+ points[4][y].getX()+"\t"+points[4][y].getY()+"\n");
 
-
-        System.out.println(buffer);
-    }
     protected int calcEcNum(double ecLevel){
         return (int)(frameBitNum / ecLength * ecLevel);
     }
@@ -140,7 +132,7 @@ public class solvePicture {
     }
     /**
      *
-     * 获得每个小方块的原始坐标
+     * 获得每个小方块的原始坐标和对应的YUV像素值
      */
     public void getRealLocation(){
         this.points = new Point[getBarCodeHeight()][getBarCodeWidth()];
@@ -153,11 +145,13 @@ public class solvePicture {
                 points[x + 1] = iValue;
             }
             transform.transformPoints(points);
-            for(int i =0;i<max;i+=2){
+            for(int i =0; i<max; i+=2){
                 //Log.d(TAG,Math.round(points[i])+"+"+ Math.round(points[i + 1]));
                 int m=Math.round(points[i]);
                 int n=Math.round(points[i+1]);
-                this.points[y][i/2]=new Point(m,n);
+                int []YUVvalue = new int[]{this.img.getPixel(m, n, RawImage.CHANNLE_Y), this.img.getPixel(m, n, RawImage.CHANNLE_U), this.img.getPixel(m, n, RawImage.CHANNLE_V)};
+                this.points[y][i/2] = new Point(m,n,YUVvalue);
+
             }
         }
     }
@@ -200,23 +194,7 @@ public class solvePicture {
 
 
     }
-/*    public int[][] getRefeColor(){
-        int colorType = 2 * this.deltaNum + 1;
-        int [][]refe = new int[colorType][3];
-        int round = 4;//参考点的组数
-        for( int loop  = 0; loop <round; loop++) {
-            for (int i = 1; i <= 5; i++) {
-                int[] yuv = getYUV(loop * colorType + i , 1);
-                for( int j = 0 ;j < 3;j++){
-                    refe[i-1][j] += yuv[j];
-                }
-            }
-        }
-        for(int i = 0; i < refe.length; i++)
-            for(int j = 0; j<refe[i].length; j++)
-                refe[i][j] /= round;
-        return refe;
-    }*/
+
 
     /**
      * 获得每行的参考色
@@ -241,27 +219,92 @@ public class solvePicture {
      * @return
      */
     public int[][] getRefeColor(int x){
-        int [][]refe = new int[this.deltaNum][2];
+        int [][]refe = new int[this.deltaNum][3];
         for(int i =0; i < refe.length;i++) {
-            refe[i][0] = getYUV(x, 1 + i)[RawImage.CHANNLE_U];
-            refe[i][1] = getYUV(x, 1 + i)[RawImage.CHANNLE_V];
+            refe[i][0] = getYUV(x, 1 + i)[RawImage.CHANNLE_Y];
+            refe[i][1] = getYUV(x, 1 + i)[RawImage.CHANNLE_U];
+            refe[i][2] = getYUV(x, 1 + i)[RawImage.CHANNLE_V];
         }
         return refe;
     }
+    /**
+     *
+     * @return
+     */
+    public int[][] clusterGetRefeColor(int row){
+        int [][]refeColorValue = getRefeColor(row);
+        int allDist = calculateDist(refeColorValue, row);
+        for(int i = 0; i < 10; i++){
+            //计算均值，然后重新迭代
+            int [][]sum = new int[refeColorValue.length][3];
+            int []count = new int[refeColorValue.length];
+            int start = this.BlackBorderLenght + this.MixBorderLeft;
+            int end = start + this.contentWidth;
+            for( int j = start;j < end; j++){
+                sum[points[row][j].category][RawImage.CHANNLE_U] += points[row][j].YUVvalue[RawImage.CHANNLE_U];
+                sum[points[row][j].category][RawImage.CHANNLE_V] += points[row][j].YUVvalue[RawImage.CHANNLE_V];
+                count[points[row][j].category] ++;
+            }
+            for(int j = 0;j < refeColorValue.length && count[j]!= 0; j++){
+                refeColorValue[j][RawImage.CHANNLE_U] = sum[j][RawImage.CHANNLE_U] / count[j];
+                refeColorValue[j][RawImage.CHANNLE_V] = sum[j][RawImage.CHANNLE_V] / count[j];
+            }
+            int newDist = calculateDist(refeColorValue, row);
+            if(newDist < allDist){
+                allDist = newDist;
+                //System.out.println("round "+ i +" new dist is "+ newDist);
+            }
+            else
+                break;
+        }
+        return refeColorValue;
+
+
+    }
+    public int calculateDist(int [][]refeValue, int row){
+        int allDist = 0;
+        int start = this.deltaNum + 1;
+        int end = start + this.contentWidth;
+        for(int j = start ; j < end; j++){
+           allDist += judgeWhitchClass(refeValue, row, j);
+        }
+        return allDist;
+    }
+    public int judgeWhitchClass(int [][]refeValue, int row, int j){
+        int dist = Integer.MAX_VALUE;
+        int classification = -1;
+        int []color = this.points[row][j].YUVvalue;
+        for( int i = 0; i < refeValue.length; i++){
+            int tempDist = (color[RawImage.CHANNLE_U] - refeValue[i][RawImage.CHANNLE_U]) * (color[RawImage.CHANNLE_U] - refeValue[i][RawImage.CHANNLE_U]) + (color[RawImage.CHANNLE_V] - refeValue[i][RawImage.CHANNLE_V]) * (color[RawImage.CHANNLE_V] - refeValue[i][RawImage.CHANNLE_V]);
+            if(tempDist < dist){
+                dist = tempDist;
+                classification = i;
+            }
+        }
+        if(classification != -1) {
+            this.points[row][j].category = classification;
+            return dist;
+        }
+        return -1;
+    }
+
 
     public BitSet  getContent(){
+
         StringBuffer buffer = new StringBuffer();
         BitSet content = new BitSet();
         int index = 0;
         int left = MixBorderLeft + BlackBorderLenght ;
-        for(int i =2;i<this.contentHeight+2; i++){
-            int [][]compare = getRefeColor(i);
-            for(int j = left;j<this.contentWidth+left;j++) {
+        for(int i = 2;i < this.contentHeight + 2; i++){
+            int [][]original = getRefeColor(i);
+            int [][]compare = clusterGetRefeColor(i);
+            for(int j = left;j<this.contentWidth + left;j++) {
                 int []yuv = getYUV(i,j);
+                buffer.append(yuv[0]+"\t"+ yuv[1]+ "\t"+yuv[2]+"\t");
                 int realx = points[i][j].getX();
                 int realy = points[i][j].getY();
-                int colorType = getStr(i, j, compare);
-                buffer.append(colorType+",");
+                //int colorType = getStr(i, j, compare);
+                int colorType = points[i][j].category;
                 switch (colorType % this.deltaNum) {
                     case 0:
                         break;
@@ -296,7 +339,7 @@ public class solvePicture {
             }
             buffer.append("\n");
         }
-        /*File file = new File(Environment.getExternalStorageDirectory(),"abc/test/compare/"+frameIndex+".txt");
+        File file = new File(Environment.getExternalStorageDirectory(),"abc/test4/compare/"+countIndex+".txt");
         OutputStream os;
         try {
             os = new FileOutputStream(file);
@@ -308,9 +351,8 @@ public class solvePicture {
         }catch (IOException e){
             Log.i(TAG, "IOException:" + e.toString());
             //return false;
-        }*/
-        //printLocation();
-        int aaaaa = content.length();
+        }
+        countIndex++;
         return content;
 
     }

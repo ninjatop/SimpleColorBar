@@ -43,7 +43,7 @@ public class RawImage {
         this.colorType=colorType;
         this.index=index;
         thresholds = new int[3];
-        thresholds[0] = 150;//这里是定义了YUV的初始阈值
+        thresholds[0] = 130;//这里是定义了YUV的初始阈值
         thresholds[1] = 120;
         thresholds[2] = 120;
         //initThreshold();
