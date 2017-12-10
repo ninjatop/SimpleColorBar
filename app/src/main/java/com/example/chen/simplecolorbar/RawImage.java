@@ -146,7 +146,7 @@ public class RawImage {
             }
         }
         if ((left == 0 || up == 0 || right == width || down == height) || (left == leftOrig && right == rightOrig && up == upOrig && down == downOrig)) {
-            throw new NotFoundException("didn't find any possible bar code: "+left+" "+up+" "+right+" "+down);
+             throw new NotFoundException("didn't find any possible bar code: "+left+" "+up+" "+right+" "+down);
         }
         return new int[]{left,up,right,down};
     }

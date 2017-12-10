@@ -31,11 +31,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mHolder.addCallback(this);
     }
     public void start(LinkedBlockingQueue<RawImage> frames){
-        this.frames=frames;
+        previewSize = mCamera.getParameters().getPreviewSize();
+        this.frames = frames;
         pause=false;
     }
     public Camera.Size getPreviewSize(){
-        return mCamera.getParameters().getPreviewSize();
+        Camera.Size size = mCamera.getParameters().getPreviewSize();
+        return size;
     }
     public void surfaceCreated(SurfaceHolder holder) {
         getCameraInstance();
