@@ -34,7 +34,7 @@ public class solvePicture {
     protected  int imgWidth;//图片宽度
     protected  int imgHeight;//图片高度
 
-    protected int bitsPerBlock = 3 ;//每个小方块的bit数
+    protected int bitsPerBlock = 2 ;//每个小方块的bit数
     protected int deltaNum = (int)(Math.pow(2.0,bitsPerBlock )) ;//变化的数目
 
 
@@ -42,13 +42,14 @@ public class solvePicture {
     protected PerspectiveTransform transform;//透视变换参数
     protected int BlackBorderLenght = 1;//第二层黑色边界
     protected int mixBorderLength = 1;//调色板的边界
-    protected int MixBorderLeft = deltaNum;//左边的参考色
+    protected int MixBorderLeft = mixBorderLength;//左边的参考色
 
 
-    protected int contentWidth = 120;//内容宽度
+    protected int contentWidth = 60;//内容宽度
     protected  int contentHeight = 50;//内容高度
 
     protected Point [][] points;
+    protected int[][]refeColor = null;//每行的参考点颜色
 
 
     int ecNum;
@@ -96,7 +97,7 @@ public class solvePicture {
         return BlackBorderLenght * 2 + mixBorderLength + MixBorderLeft + contentWidth;
     }
     protected int getBarCodeHeight(){
-        return BlackBorderLenght  * 2 + mixBorderLength + contentHeight;
+        return BlackBorderLenght  * 2 + 2*mixBorderLength + contentHeight;
     }
 
 
@@ -219,13 +220,30 @@ public class solvePicture {
      * @return
      */
     public int[][] getRefeColor(int x){
-        int [][]refe = new int[this.deltaNum][3];
-        for(int i =0; i < refe.length;i++) {
-            refe[i][0] = getYUV(x, 1 + i)[RawImage.CHANNLE_Y];
-            refe[i][1] = getYUV(x, 1 + i)[RawImage.CHANNLE_U];
-            refe[i][2] = getYUV(x, 1 + i)[RawImage.CHANNLE_V];
+        if(this.refeColor == null){//只适用于第二行
+            this.refeColor = new int[this.deltaNum][3];
+            for(int i =0; i < this.refeColor.length;i++) {
+                this.refeColor[i][0] = getYUV(x + i, 1 )[RawImage.CHANNLE_Y];
+                this.refeColor[i][1] = getYUV(x + i, 1 )[RawImage.CHANNLE_U];
+                this.refeColor[i][2] = getYUV(x + i, 1 )[RawImage.CHANNLE_V];
+            }
         }
-        return refe;
+        else if(x == (this.BlackBorderLenght + this.mixBorderLength + this.contentHeight -1) || x == 3 || x ==4 ){//代表最后一行或第二行或第三行
+            //do nothing
+        }
+        else{//其余情况，用现有下面一行代替其中一行
+            int []temp = new int[3];//现有行下面一行
+            temp[0] = getYUV(x+1, 1)[RawImage.CHANNLE_Y];
+            temp[1] = getYUV(x+1, 1)[RawImage.CHANNLE_U];
+            temp[2] = getYUV(x+1, 1)[RawImage.CHANNLE_V];
+            switch ((x-1) % this.deltaNum ){
+                case 0: this.refeColor[0] = temp.clone(); break;
+                case 1: this.refeColor[1] = temp.clone(); break;
+                case 2: this.refeColor[2] = temp.clone(); break;
+                case 3: this.refeColor[3] = temp.clone(); break;
+            }
+        }
+        return this.refeColor;
     }
     /**
      *
@@ -263,7 +281,7 @@ public class solvePicture {
     }
     public int calculateDist(int [][]refeValue, int row){
         int allDist = 0;
-        int start = this.deltaNum + 1;
+        int start = this.BlackBorderLenght + this.MixBorderLeft;
         int end = start + this.contentWidth;
         for(int j = start ; j < end; j++){
            allDist += judgeWhitchClass(refeValue, row, j);
@@ -297,28 +315,29 @@ public class solvePicture {
         int left = MixBorderLeft + BlackBorderLenght ;
         for(int i = 2;i < this.contentHeight + 2; i++){
             int [][]original = getRefeColor(i);
-            int [][]compare = clusterGetRefeColor(i);
+            //int [][]compare = clusterGetRefeColor(i);
             for(int j = left;j<this.contentWidth + left;j++) {
                 int []yuv = getYUV(i,j);
-                buffer.append(yuv[0]+"\t"+ yuv[1]+ "\t"+yuv[2]+"\t");
+                //buffer.append(yuv[0]+"\t"+ yuv[1]+ "\t"+yuv[2]+"\t");
                 int realx = points[i][j].getX();
                 int realy = points[i][j].getY();
-                //int colorType = getStr(i, j, compare);
-                int colorType = points[i][j].category;
+                int colorType = getStr(i, j, original);
+                buffer.append(colorType+",");
+                //int colorType = points[i][j].category;
                 switch (colorType % this.deltaNum) {
                     case 0:
                         break;
                     case 1:
-                        content.set(index + 2);
+                        content.set(index + 1);
                         break;
                     case 2:
-                        content.set(index + 1);
+                        content.set(index );
                         break;
                     case 3:
+                        content.set(index );
                         content.set(index + 1);
-                        content.set(index + 2);
                         break;
-                    case 4:
+                    /*case 4:
                         content.set(index);
                         break;
                     case 5:
@@ -333,13 +352,13 @@ public class solvePicture {
                         content.set(index);
                         content.set(index + 1);
                         content.set(index + 2);
-                        break;
+                        break;*/
                 }
                 index += this.bitsPerBlock;
             }
             buffer.append("\n");
         }
-        File file = new File(Environment.getExternalStorageDirectory(),"abc/test4/compare/"+countIndex+".txt");
+        /*File file = new File(Environment.getExternalStorageDirectory(),"abc/test/compare/"+countIndex+".txt");
         OutputStream os;
         try {
             os = new FileOutputStream(file);
@@ -351,7 +370,7 @@ public class solvePicture {
         }catch (IOException e){
             Log.i(TAG, "IOException:" + e.toString());
             //return false;
-        }
+        }*/
         countIndex++;
         return content;
 
@@ -417,7 +436,7 @@ public class solvePicture {
     public BitSet getHead(){
         BitSet bitSet=new BitSet();
         int length = 40;
-        int left = this.MixBorderLeft + this.BlackBorderLenght;
+        int left = this.mixBorderLength + this.BlackBorderLenght;
         for (int i = left; i< length + left; i++){
             int []YUV = getYUV(1,i);
             int realx = points[1][i].getX();
@@ -527,16 +546,20 @@ public class solvePicture {
         int curV = getYUV(x, y)[RawImage.CHANNLE_V];
         int result = -1;
         int dist = 100000;
-        for(int i = 0; i < this.deltaNum ;i++){
-            int stdU = compare[i][0];
-            int stdV = compare[i][1];
-            int diff = Math.abs(curU - stdU)* Math.abs(curU - stdU) + Math.abs(curV - stdV)* Math.abs(curV - stdV);
-            if( diff < dist){
-                dist = Math.abs(diff);
-                result = i;
-            }
-        }
-
+        StringBuffer buffer = new StringBuffer();
+        int U1 = compare[0][1];
+        int V1 = compare[0][2];
+        int U2 = compare[2][1];
+        int V2 = compare[1][2];
+        if(Math.abs(curU-U1) < Math.abs(curU-U2))
+            buffer.append("0");
+        else
+            buffer.append("1");
+        if(Math.abs(curV-V1) < Math.abs(curV-V2))
+            buffer.append("0");
+        else
+            buffer.append("1");
+        result = Integer.parseInt(buffer.toString(),2);
         return result ;
 
 

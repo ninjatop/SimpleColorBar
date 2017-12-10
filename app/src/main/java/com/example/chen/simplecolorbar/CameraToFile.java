@@ -20,11 +20,11 @@ public class CameraToFile extends StreamToFile {
     }
     public void toFile(String fileName,CameraPreview mPreview){
         if(VERBOSE){Log.i(TAG,"process camera");}
-        LinkedBlockingQueue<RawImage> rev = new LinkedBlockingQueue<>(4);//限制队列的大小，保持在4个
-        Camera.Size previewSize=mPreview.getPreviewSize();
+        LinkedBlockingQueue<RawImage> rev = new LinkedBlockingQueue<>(10);//限制队列的大小，保持在4个
+        Camera.Size previewSize = mPreview.getPreviewSize();
         int frameWidth=previewSize.width;
         int frameHeight=previewSize.height;
-        this.mPreview=mPreview;
+        this.mPreview = mPreview;
         mPreview.start(rev);
         streamToFile(rev,frameWidth,frameHeight,fileName);
     }

@@ -35,7 +35,7 @@ public class VideoToFrames implements Runnable {
     //private static final int decodeColorFormat = MediaCodecInfo.CodecCapabilities.COLOR_Format;
     private LinkedBlockingQueue<RawImage> mQueue;
     private OutputImageFormat outputImageFormat;
-    private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test4/10fps/";
+    private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test/10fps/";
     private boolean stopDecode = false;
 
     private String videoFilePath;

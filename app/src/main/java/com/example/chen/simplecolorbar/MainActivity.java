@@ -227,7 +227,7 @@ public class MainActivity extends Activity {
                 id = R.id.file_path_input;
                 if( data != null)
                     path = data.getData().getPath();//这里是转换媒体的内部路径和绝对路径
-                if(path.contains("external")){
+                /*if(path.contains("external")){
                     String[] proj = {MediaStore.Images.Media.DATA};
                     //好像是Android多媒体数据库的封装接口，具体的看Android文档
                     Cursor cursor = managedQuery(data.getData(), proj, null, null, null);
@@ -237,6 +237,8 @@ public class MainActivity extends Activity {
                     cursor.moveToFirst();
                     //最后根据索引值获取图片路径
                     path = cursor.getString(column_index);
+                }else*/ if(path.contains(":")){//三星手机处理
+                    path =  Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + path.split(":")[1];
                 }
 
                 break;

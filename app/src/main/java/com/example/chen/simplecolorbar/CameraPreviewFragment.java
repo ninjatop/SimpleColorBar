@@ -2,6 +2,7 @@ package com.example.chen.simplecolorbar;
 
 import android.app.Fragment;
 import android.content.SharedPreferences;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;

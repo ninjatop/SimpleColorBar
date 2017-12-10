@@ -31,7 +31,7 @@ import com.example.chen.simplecolorbar.ReedSolomon.ReedSolomonException;
  */
 public class ProcessFrame extends HandlerThread implements Handler.Callback {
     private static final String TAG="ProcessFrame";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
 
     //public static final int WHAT_BARCODE_FORMAT=1;
     public static final int WHAT_FEC_PARAMETERS=1;
