@@ -25,6 +25,7 @@ public class VideoToFrames implements Runnable {
     private static final String TAG = "VideoToFrames";
     private static final boolean VERBOSE = false;
     private static final long DEFAULT_TIMEOUT_US = 10000;
+    private  static final boolean save = true;//是否保存
 
     private static final int COLOR_FormatI420 = 1;
     private static final int COLOR_FormatNV21 = 2;
@@ -34,7 +35,7 @@ public class VideoToFrames implements Runnable {
     //private static final int decodeColorFormat = MediaCodecInfo.CodecCapabilities.COLOR_Format;
     private LinkedBlockingQueue<RawImage> mQueue;
     private OutputImageFormat outputImageFormat;
-    private String OUTPUT_DIR =Environment.getExternalStorageDirectory().toString()+"/abc/test2/10fps/";
+    private String OUTPUT_DIR = Environment.getExternalStorageDirectory().toString()+"/abc/test/10fps/";
     private boolean stopDecode = false;
 
     private String videoFilePath;
@@ -181,7 +182,7 @@ public class VideoToFrames implements Runnable {
                         callback.onDecodeFrame(outputFrameCount);
                     }
                     Image image = decoder.getOutputImage(outputBufferId);
-                    if (mQueue != null) {
+                    if (mQueue != null ) {
                         try {
                             mQueue.put(new RawImage(getDataFromImage(image,COLOR_FormatI420),width,height,RawImage.COLOR_TYPE_YUV,outputFrameCount));
                         } catch (InterruptedException e) {
@@ -189,11 +190,14 @@ public class VideoToFrames implements Runnable {
                         }
                     }
 
+
                     /*String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d.jpg", outputFrameCount));
                     compressToJpeg(fileName, image);*/
-                    /*String fileName=Utils.combinePaths(OUTPUT_DIR,String.format("frame_%05d_I420_%dx%d.yuv", outputFrameCount, width, height));
-                    dumpFile(fileName, getDataFromImage(image, COLOR_FormatI420));*/
+                    if(save) {
 
+                        String fileName = Utils.combinePaths(OUTPUT_DIR, String.format("frame_%05d_I420_%dx%d.yuv", outputFrameCount, width, height));
+                        dumpFile(fileName, getDataFromImage(image, COLOR_FormatI420));
+                    }
                     //图片的存储
                     /*if (outputImageFormat != null) {
                         String fileName;
@@ -349,9 +353,9 @@ public class VideoToFrames implements Runnable {
             throw new RuntimeException("Unable to create output file " + fileName, ioe);
         }
         Rect rect = image.getCropRect();
-            YuvImage yuvImage = new YuvImage(getDataFromImage(image, COLOR_FormatNV21), ImageFormat.NV21, rect.width(), rect.height(), null);
-            yuvImage.compressToJpeg(rect, 100, outStream);
-            try {
+        YuvImage yuvImage = new YuvImage(getDataFromImage(image, COLOR_FormatNV21), ImageFormat.NV21, rect.width(), rect.height(), null);
+        yuvImage.compressToJpeg(rect, 100, outStream);
+        try {
             outStream.close();
         } catch (IOException e) {
             e.printStackTrace();

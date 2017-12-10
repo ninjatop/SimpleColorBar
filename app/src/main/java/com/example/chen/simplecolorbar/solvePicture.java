@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.IntBuffer;
 import java.util.BitSet;
+import java.util.Random;
 
 /** *
  * Created by CHEN on 2016/10/10.
@@ -22,6 +23,7 @@ import java.util.BitSet;
  */
 public class solvePicture {
     public static final String TAG = "solvePicture";
+    public static int countIndex = 0;//用来计数现在的处理的数目
     public  RawImage img;
     public int []rgbValue;
     public int []black;//黑色的值
@@ -32,20 +34,19 @@ public class solvePicture {
     protected  int imgWidth;//图片宽度
     protected  int imgHeight;//图片高度
 
-    protected int bitsPerBlock = 2 ;//每个小方块的bit数
-    protected int deltaNum = (int)(Math.pow(bitsPerBlock, 2.0)) ;//变化的数目
+    protected int bitsPerBlock = 3 ;//每个小方块的bit数
+    protected int deltaNum = (int)(Math.pow(2.0,bitsPerBlock )) ;//变化的数目
 
 
 
     protected PerspectiveTransform transform;//透视变换参数
     protected int BlackBorderLenght = 1;//第二层黑色边界
     protected int mixBorderLength = 1;//调色板的边界
-    protected int MixBorderLeft = 1;//左边的参考色
+    protected int MixBorderLeft = deltaNum;//左边的参考色
 
 
-    protected int contentWidth = 72;//内容宽度
-    protected  int contentHeight = 60 + 6;//内容高度
-    protected int refeHeight = 6;
+    protected int contentWidth = 120;//内容宽度
+    protected  int contentHeight = 50;//内容高度
 
     protected Point [][] points;
 
@@ -57,14 +58,14 @@ public class solvePicture {
     protected int frameBitNum ;//每一帧的bit总数目
     protected int[] threshols;
     public solvePicture(){
-        frameBitNum = (contentHeight - refeHeight) * contentWidth * bitsPerBlock ;
+        frameBitNum = contentHeight * contentWidth * bitsPerBlock ;
         ecNum = calcEcNum(ecLevel);
     }
 
 
     public solvePicture(RawImage img,int []initBorder) {
 
-        frameBitNum = (contentHeight - refeHeight) * contentWidth * bitsPerBlock ;
+        frameBitNum = contentHeight * contentWidth * bitsPerBlock ;
         ecNum = calcEcNum(ecLevel);
         this.img = img;
         this.imgWidth = img.getWidth();
@@ -79,28 +80,14 @@ public class solvePicture {
         perspectiveTransform();
         getRealLocation();
         //display();
-        try {
+        /*try {
             getFrameIndex();//获得帧序号
         }
         catch (CRCCheckException e){
             Log.d(TAG, "frameIndex CRC check failed");
-        }
+        }*/
     }
-    /*
-    for test
-     */
-    public void display(){
-        StringBuffer buffer = new StringBuffer();
-        for(int i = 0;i<getBarCodeHeight();i++){
-            for(int j = 0;j<getBarCodeWidth();j++){
-                int x = points[i][j].getX();
-                int y = points[i][j].getY();
-                buffer.append("("+x+","+y+"),");
-            }
-            buffer.append("\n");
-        }
-        System.out.print(buffer);
-    }
+
     protected int calcEcNum(double ecLevel){
         return (int)(frameBitNum / ecLength * ecLevel);
     }
@@ -109,7 +96,7 @@ public class solvePicture {
         return BlackBorderLenght * 2 + mixBorderLength + MixBorderLeft + contentWidth;
     }
     protected int getBarCodeHeight(){
-        return (BlackBorderLenght + mixBorderLength) * 2 + contentHeight;
+        return BlackBorderLenght  * 2 + mixBorderLength + contentHeight;
     }
 
 
@@ -145,7 +132,7 @@ public class solvePicture {
     }
     /**
      *
-     * 获得每个小方块的原始坐标
+     * 获得每个小方块的原始坐标和对应的YUV像素值
      */
     public void getRealLocation(){
         this.points = new Point[getBarCodeHeight()][getBarCodeWidth()];
@@ -158,11 +145,13 @@ public class solvePicture {
                 points[x + 1] = iValue;
             }
             transform.transformPoints(points);
-            for(int i =0;i<max;i+=2){
+            for(int i =0; i<max; i+=2){
                 //Log.d(TAG,Math.round(points[i])+"+"+ Math.round(points[i + 1]));
                 int m=Math.round(points[i]);
                 int n=Math.round(points[i+1]);
-                this.points[y][i/2]=new Point(m,n);
+                int []YUVvalue = new int[]{this.img.getPixel(m, n, RawImage.CHANNLE_Y), this.img.getPixel(m, n, RawImage.CHANNLE_U), this.img.getPixel(m, n, RawImage.CHANNLE_V)};
+                this.points[y][i/2] = new Point(m,n,YUVvalue);
+
             }
         }
     }
@@ -205,77 +194,137 @@ public class solvePicture {
 
 
     }
-    /*public int[][] getRefeColor(){
-        int colorType = 2 * this.deltaNum + 1;
-        int [][]refe = new int[colorType][3];
-        int round = 4;//参考点的组数
-        for( int loop  = 0; loop <round; loop++) {
-            for (int i = 1; i <= 5; i++) {
-                int[] yuv = getYUV(loop * colorType + i , 1);
-                for( int j = 0 ;j < 3;j++){
-                    refe[i-1][j] += yuv[j];
-                }
-            }
-        }
-        for(int i = 0; i < refe.length; i++)
-            for(int j = 0; j<refe[i].length; j++)
-                refe[i][j] /= round;
-        return refe;
-    }*/
+
+
 
     /**
-     * 获得每行的参考色
+     * 获得指定行参考点颜色
+     * @param x 行号
      * @return
      */
-    public int[] getRefeColor(int x, int frameIndex){
-        int []refe = new int[this.contentWidth];
-        if(frameIndex %2 == 0){
-            for(int i =0; i < refe.length;i++)
-                refe[i] = getYUV(x,2+i)[RawImage.CHANNLE_U];
-        }
-        else{
-            for(int i =0; i < refe.length;i++)
-                refe[i] = getYUV(x,2+i)[RawImage.CHANNLE_V];
+    public int[][] getRefeColor(int x){
+        int [][]refe = new int[this.deltaNum][3];
+        for(int i =0; i < refe.length;i++) {
+            refe[i][0] = getYUV(x, 1 + i)[RawImage.CHANNLE_Y];
+            refe[i][1] = getYUV(x, 1 + i)[RawImage.CHANNLE_U];
+            refe[i][2] = getYUV(x, 1 + i)[RawImage.CHANNLE_V];
         }
         return refe;
     }
 
-    public BitSet getContent(){
+    /**
+     * 获得四周的参考点的YUV值
+     * @return
+     */
+    public String getALLRefeColor(){
         StringBuffer buffer = new StringBuffer();
-        BitSet content = new BitSet();
-        int index = 0;
-        int left = MixBorderLeft + BlackBorderLenght ;
-        int []compare = null;
-        for(int i =2;i<this.contentHeight+2; i++) {
-            if ((i - 2) % 11 ==  0) {
-                compare = getRefeColor(i, frameIndex);
-            } else {
-                for (int j = left; j < this.contentWidth + left; j++) {
-                    int[] yuv = getYUV(i, j);
-                    int realx = points[i][j].getX();
-                    int realy = points[i][j].getY();
-                    int colorType = getStr(i, j, compare);
-                    buffer.append(colorType + ",");
-                    switch (colorType % this.deltaNum) {
-                        case 0:
-                            break;
-                        case 1:
-                            content.set(index + 1);
-                            break;
-                        case 2:
-                            content.set(index);
-                            break;
-                        case 3:
-                            content.set(index);
-                            content.set(index + 1);
-                            break;
-                    }
-                    index += this.bitsPerBlock;
-                }
-                buffer.append("\n");
+        int left = 1;
+        int top = 2;
+        int right = left + this.contentWidth + 1;
+        int bottom = top + this.contentHeight +1;
+        //top
+        buffer.append("top Reference:\n");
+        for(int line = left + 1; line < right; line ++)
+            buffer.append(getYUV(top, line)[0]+ "\t" + getYUV(top, line)[1] + "\t" + getYUV(top, line)[2] + "\t");
+        buffer.append("\n");
+        //right
+        buffer.append("right Reference:\n");
+        for(int row = top + 1; row < bottom ; row ++)
+            buffer.append(getYUV(row, right)[0] + "\t" + getYUV(row, right)[1] + "\t" + getYUV(row, right)[2] + "\t");
+        buffer.append("\n");
+        //bottom
+        buffer.append("bottom Reference:\n");
+        for(int line = left + 1; line < right; line ++)
+            buffer.append(getYUV(bottom, line)[0]+ "\t" + getYUV(bottom, line)[1] + "\t" + getYUV(bottom, line)[2] + "\t");
+        buffer.append("\n");
+        //left
+        buffer.append("left Reference:\n");
+        for(int row = top + 1; row < bottom ; row ++)
+            buffer.append(getYUV(row, left)[0] + "\t" + getYUV(row, left)[1] + "\t" + getYUV(row, left)[2] + "\t");
+        buffer.append("\n");
+        return buffer.toString();
+    }
+    /**
+     *
+     * @return
+     */
+    public int[][] clusterGetRefeColor(int row){
+        int [][]refeColorValue = getRefeColor(row);
+        int allDist = calculateDist(refeColorValue, row);
+        for(int i = 0; i < 10; i++){
+            //计算均值，然后重新迭代
+            int [][]sum = new int[refeColorValue.length][3];
+            int []count = new int[refeColorValue.length];
+            int start = this.BlackBorderLenght + this.MixBorderLeft;
+            int end = start + this.contentWidth;
+            for( int j = start;j < end; j++){
+                sum[points[row][j].category][RawImage.CHANNLE_U] += points[row][j].YUVvalue[RawImage.CHANNLE_U];
+                sum[points[row][j].category][RawImage.CHANNLE_V] += points[row][j].YUVvalue[RawImage.CHANNLE_V];
+                count[points[row][j].category] ++;
+            }
+            for(int j = 0;j < refeColorValue.length && count[j]!= 0; j++){
+                refeColorValue[j][RawImage.CHANNLE_U] = sum[j][RawImage.CHANNLE_U] / count[j];
+                refeColorValue[j][RawImage.CHANNLE_V] = sum[j][RawImage.CHANNLE_V] / count[j];
+            }
+            int newDist = calculateDist(refeColorValue, row);
+            if(newDist < allDist){
+                allDist = newDist;
+                //System.out.println("round "+ i +" new dist is "+ newDist);
+            }
+            else
+                break;
+        }
+        return refeColorValue;
+
+
+    }
+    public int calculateDist(int [][]refeValue, int row){
+        int allDist = 0;
+        int start = this.deltaNum + 1;
+        int end = start + this.contentWidth;
+        for(int j = start ; j < end; j++){
+            allDist += judgeWhitchClass(refeValue, row, j);
+        }
+        return allDist;
+    }
+    public int judgeWhitchClass(int [][]refeValue, int row, int j){
+        int dist = Integer.MAX_VALUE;
+        int classification = -1;
+        int []color = this.points[row][j].YUVvalue;
+        for( int i = 0; i < refeValue.length; i++){
+            int tempDist = (color[RawImage.CHANNLE_U] - refeValue[i][RawImage.CHANNLE_U]) * (color[RawImage.CHANNLE_U] - refeValue[i][RawImage.CHANNLE_U]) + (color[RawImage.CHANNLE_V] - refeValue[i][RawImage.CHANNLE_V]) * (color[RawImage.CHANNLE_V] - refeValue[i][RawImage.CHANNLE_V]);
+            if(tempDist < dist){
+                dist = tempDist;
+                classification = i;
             }
         }
-       /* File file = new File(Environment.getExternalStorageDirectory(),"abc/test1/compare/"+frameIndex+".txt");
+        if(classification != -1) {
+            this.points[row][j].category = classification;
+            return dist;
+        }
+        return -1;
+    }
+
+    /**
+     * 把参考点和数据都写进文件里面
+     */
+    public void getAndWriteContent(){
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(getALLRefeColor());
+        buffer.append("data \n");
+        int index = 0;
+        int left = 2;
+        int right = left + this.contentWidth;
+        int top = 3;
+        int bottom = top + this.contentHeight;
+        for(int i = top; i < bottom; i++) {
+            for (int j = left; j < right; j++) {
+                int []yuv = getYUV(i,j);
+                buffer.append(yuv[0]+"\t"+ yuv[1]+ "\t"+yuv[2]+"\t");
+            }
+            buffer.append("\n");
+        }
+        File file = new File(Environment.getExternalStorageDirectory(),"abc/test/compare/" + countIndex+".txt");
         OutputStream os;
         try {
             os = new FileOutputStream(file);
@@ -287,9 +336,62 @@ public class solvePicture {
         }catch (IOException e){
             Log.i(TAG, "IOException:" + e.toString());
             //return false;
-        }*/
-        //display();
+        }
+
+    }
+    public BitSet  getContent(){
+
+        BitSet content = new BitSet();
+        int index = 0;
+        int left = 2;
+        int right = left + this.contentWidth;
+        int top = 3;
+        int bottom = top + this.contentHeight;
+        for(int i = top; i < bottom; i++){
+            int [][]original = getRefeColor(i);
+            //int [][]compare = clusterGetRefeColor(i);
+            for(int j = left;j< right; j++) {
+                int realx = points[i][j].getX();
+                int realy = points[i][j].getY();
+                //int colorType = getStr(i, j, compare);
+                int colorType = points[i][j].category;
+                switch (colorType % this.deltaNum) {
+                    case 0:
+                        break;
+                    case 1:
+                        content.set(index + 2);
+                        break;
+                    case 2:
+                        content.set(index + 1);
+                        break;
+                    case 3:
+                        content.set(index + 1);
+                        content.set(index + 2);
+                        break;
+                    case 4:
+                        content.set(index);
+                        break;
+                    case 5:
+                        content.set(index);
+                        content.set(index + 2);
+                        break;
+                    case 6:
+                        content.set(index);
+                        content.set(index + 1);
+                        break;
+                    case 7:
+                        content.set(index);
+                        content.set(index + 1);
+                        content.set(index + 2);
+                        break;
+                }
+                index += this.bitsPerBlock;
+            }
+        }
+        this.getAndWriteContent();//这里写文件
+        countIndex++;
         return content;
+
     }
 
     /**
@@ -302,7 +404,9 @@ public class solvePicture {
         BitSet bitset = new BitSet();
         for(int i = 0;i < 40; i++){
             int Y = getYUV(x + i, y)[RawImage.CHANNLE_Y];
-            if(Y > threshols[RawImage.CHANNLE_Y])
+            int realx = points[x+i][y].getX();
+            int realy = points[x+i][y].getY();
+            if( Y > (getYUV(x + i, y + this.mixBorderLength)[RawImage.CHANNLE_Y] + 10 ))
                 bitset.set(i);
         }
         int intLength=32;
@@ -324,10 +428,22 @@ public class solvePicture {
         crcCheck.update(index);
         int truth=(int)crcCheck.getValue();
         Log.d(TAG, "CRC check: frame original index:" + index + " CRC:" + crc + " truth:" + truth);
-        if(crc!=truth || index<0){
+        /*if(crc!=truth || index<0){
             throw CRCCheckException.getNotFoundInstance();
-        }
+        }*/
         this.frameIndex = index;
+    }
+
+    public int getBlackRefe(){
+        int x = this.BlackBorderLenght + this.mixBorderLength;
+        int y = this.BlackBorderLenght + this.contentWidth + this.MixBorderLeft + this.mixBorderLength;
+        int max = 0;
+        for(int i = 0; i < 10;i++){
+            int Y = getYUV(x + i, y)[RawImage.CHANNLE_Y];
+            if(Y > max)
+                max = Y;
+        }
+        return max;
     }
 
     /**
@@ -338,9 +454,11 @@ public class solvePicture {
     public BitSet getHead(){
         BitSet bitSet=new BitSet();
         int length = 40;
-        int left = MixBorderLeft + 1;
+        int left = this.MixBorderLeft + this.BlackBorderLenght;
         for (int i = left; i< length + left; i++){
             int []YUV = getYUV(1,i);
+            int realx = points[1][i].getX();
+            int realy = points[1][i].getY();
             if(YUV[RawImage.CHANNLE_Y] > threshols[RawImage.CHANNLE_Y])
                 bitSet.set(i-left);
         }
@@ -365,14 +483,13 @@ public class solvePicture {
             cur = getYUV(x, y)[RawImage.CHANNLE_U];
             int result = -1;
             int dist = 500;
-            int start =  (y - MixBorderLeft - BlackBorderLenght) / this.deltaNum * this.deltaNum;
-            for(int i = start; i < this.deltaNum + start ;i++){
+            for(int i = 0; i < this.deltaNum ;i++){
                 if(Math.abs(cur-compare[i]) < dist){
                     dist = Math.abs(cur-compare[i]);
                     result = i;
                 }
             }
-            return result % this.deltaNum ;
+            return result ;
             /*if(cur < compare[0]){
                 int dist = 500;
                 for(int i = 1;i< this.deltaNum/2 + 1 ;i++){
@@ -400,14 +517,13 @@ public class solvePicture {
             cur = getYUV(x, y)[RawImage.CHANNLE_V];
             int result = -1;
             int dist = 500;
-            int start =  (y - MixBorderLeft - BlackBorderLenght) / this.deltaNum * this.deltaNum;
-            for(int i = start; i < this.deltaNum + start ;i++){
+            for(int i = 0; i < this.deltaNum ;i++){
                 if(Math.abs(cur-compare[i]) < dist){
                     dist = Math.abs(cur-compare[i]);
                     result = i;
                 }
             }
-            return result % this.deltaNum + this.deltaNum ;
+            return result ;
             /*cur = getRGB(current)[1];
             int result = -1;
             if(cur < compare[0]){
@@ -431,6 +547,35 @@ public class solvePicture {
                 return result + this.deltaNum - 1;
             }*/
         }
+
+
+    }
+
+    /**
+     * 获得小方块的颜色种类值
+     * @param x
+     * @param y
+     * @param compare
+     * @return
+     */
+    public int getStr(int x, int y, int [][]compare){
+        int cur = -1;
+        int curU = getYUV(x, y)[RawImage.CHANNLE_U];
+        int curV = getYUV(x, y)[RawImage.CHANNLE_V];
+        int result = -1;
+        int dist = 100000;
+        for(int i = 0; i < this.deltaNum ;i++){
+            int stdU = compare[i][0];
+            int stdV = compare[i][1];
+            int diff = Math.abs(curU - stdU)* Math.abs(curU - stdU) + Math.abs(curV - stdV)* Math.abs(curV - stdV);
+            if( diff < dist){
+                dist = Math.abs(diff);
+                result = i;
+            }
+        }
+
+        return result ;
+
 
 
     }
@@ -458,7 +603,6 @@ public class solvePicture {
             }
         }
         //Log.d(TAG,"index:"+index);
-
         String path = Environment.getExternalStorageDirectory()+"/abc/test9/colorSequence/"+this.frameIndex+".txt";
         StringBuffer str = new StringBuffer();
         try {
@@ -467,17 +611,14 @@ public class solvePicture {
             while((line =reader.readLine())!=null){
                 str.append(line.trim());
             }
-
         }catch (Exception e){
             e.printStackTrace();
         }
-
         //String []temp = str.toString().split(",");
         //String temp = str.toString();
         String []real = str.toString().split(",");
         Log.d(TAG,real.length+"");
         int errorNum = 0;
-
         for(int i = 0;i<real.length;i++){
             if(color[i]!=Integer.parseInt(real[i])) {
                 errorNum++;
@@ -487,6 +628,5 @@ public class solvePicture {
         Log.d(TAG,"Error Num is "+errorNum);
         System.out.println("Error rate is :"+(((double)errorNum)/real.length));
         return errorNum;
-
     }*/
 }

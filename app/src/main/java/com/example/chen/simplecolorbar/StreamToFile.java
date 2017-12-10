@@ -98,6 +98,7 @@ public class StreamToFile extends MediaToFile implements ProcessFrame.FrameCallb
                 processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_FEC_PARAMETERS,parameters));
             }
             BitSet content = solve.getContent();
+
             //rawContent.frameIndex=frameCount;
             processHandler.sendMessage(processHandler.obtainMessage(ProcessFrame.WHAT_RAW_CONTENT,content));
             borders = smallBorder(solve.borders);

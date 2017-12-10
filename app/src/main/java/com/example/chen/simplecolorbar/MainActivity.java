@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -236,9 +237,10 @@ public class MainActivity extends Activity {
         switch (requestCode){
             case REQUEST_CODE_FILE_PATH_INPUT:
                 id = R.id.file_path_input;
+
                 if( data != null)
-                    path = data.getData().getPath();//这里是转换媒体的内部路径和绝对路径
-                if(path.contains("external")){
+                    path =  data.getData().getPath();//这里是转换媒体的内部路径和绝对路径
+                /*if(path.contains("external")){//华为平板处理
                     String[] proj = {MediaStore.Images.Media.DATA};
                     //好像是Android多媒体数据库的封装接口，具体的看Android文档
                     Cursor cursor = managedQuery(data.getData(), proj, null, null, null);
@@ -249,7 +251,9 @@ public class MainActivity extends Activity {
                     //最后根据索引值获取图片路径
                     path = cursor.getString(column_index);
                 }
-
+                else*/ if(path.contains(":")){//三星手机处理
+                    path =  Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + path.split(":")[1];
+                }
                 break;
             case REQUEST_CODE_FILE_PATH_TRUTH:
                 id=R.id.file_path_truth;
