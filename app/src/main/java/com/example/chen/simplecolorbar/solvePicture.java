@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Environment;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,8 +46,8 @@ public class solvePicture {
     protected int MixBorderLeft = deltaNum;//左边的参考色
 
 
-    protected int contentWidth = 120;//内容宽度
-    protected  int contentHeight = 50;//内容高度
+    protected int contentWidth = 40;//内容宽度
+    protected  int contentHeight = 40;//内容高度
 
     protected Point [][] points;
 
@@ -347,12 +348,14 @@ public class solvePicture {
         int right = left + this.contentWidth;
         int top = 3;
         int bottom = top + this.contentHeight;
+        StringBuffer buffer = new StringBuffer();
         for(int i = top; i < bottom; i++){
             int [][]original = getRefeColor(i);
             //int [][]compare = clusterGetRefeColor(i);
             for(int j = left;j< right; j++) {
                 int realx = points[i][j].getX();
                 int realy = points[i][j].getY();
+                buffer.append(getYUV(i,j)[0]+",");
                 //int colorType = getStr(i, j, compare);
                 int colorType = points[i][j].category;
                 switch (colorType % this.deltaNum) {
@@ -387,7 +390,9 @@ public class solvePicture {
                 }
                 index += this.bitsPerBlock;
             }
+            buffer.append("\n");
         }
+        System.out.println(buffer.toString());
         this.getAndWriteContent();//这里写文件
         countIndex++;
         return content;
