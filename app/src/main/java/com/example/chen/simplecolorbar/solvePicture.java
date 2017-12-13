@@ -45,8 +45,8 @@ public class solvePicture {
     protected int MixBorderLeft = mixBorderLength;//左边的参考色
 
 
-    protected int contentWidth = 60;//内容宽度
-    protected  int contentHeight = 50;//内容高度
+    protected int contentWidth = 40;//内容宽度
+    protected  int contentHeight = 30;//内容高度
 
     protected Point [][] points;
     protected int[][]refeColor = null;//每行的参考点颜色
@@ -384,14 +384,14 @@ public class solvePicture {
         int x = this.BlackBorderLenght + this.mixBorderLength;
         int y = this.BlackBorderLenght + this.contentWidth + this.MixBorderLeft;
         BitSet bitset = new BitSet();
-        for(int i = 0;i < 40; i++){
+        for(int i = 0;i < 28; i++){
             int Y = getYUV(x + i, y)[RawImage.CHANNLE_Y];
             int realx = points[x+i][y].getX();
             int realy = points[x+i][y].getY();
             if( Y > (getYUV(x + i, y + this.mixBorderLength)[RawImage.CHANNLE_Y] + 10 ))
                 bitset.set(i);
         }
-        int intLength=32;
+        int intLength=20;
         int byteLength=8;
         int index=0;
         for(int i=0;i< intLength;i++){
@@ -435,7 +435,7 @@ public class solvePicture {
 
     public BitSet getHead(){
         BitSet bitSet=new BitSet();
-        int length = 40;
+        int length = 28;//临时改成28位
         int left = this.mixBorderLength + this.BlackBorderLenght;
         for (int i = left; i< length + left; i++){
             int []YUV = getYUV(1,i);

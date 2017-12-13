@@ -51,7 +51,7 @@ public class MediaToFile{
         handler.sendMessage(msg);
     }
     public int getFileByteNum(BitSet head) throws CRCCheckException{
-        int intLength=32;
+        int intLength=20;
         int byteLength=8;
         int index=0;
         for(int i=0;i<intLength;i++){

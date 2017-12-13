@@ -43,7 +43,7 @@ public class RawImage {
         this.colorType=colorType;
         this.index=index;
         thresholds = new int[3];
-        thresholds[0] = 120;//这里是定义了YUV的初始阈值
+        thresholds[0] = 130;//这里是定义了YUV的初始阈值
         thresholds[1] = 120;
         thresholds[2] = 120;
         //initThreshold();
@@ -64,7 +64,7 @@ public class RawImage {
         }
     }
     private int[] genInitBorder(){
-        int init = 200;
+        int init = 100;
         int left = width / 2 - init;
         int right = width / 2 + init;
         int up = height / 2 - init;
@@ -122,6 +122,10 @@ public class RawImage {
             throw new NotFoundException("frame size too small");
         }
         boolean flag;
+        System.out.print("top left value "+getPixel(leftOrig, upOrig, 0) +"\n");
+        System.out.print("top right value "+getPixel(rightOrig, upOrig, 0) +"\n");
+        System.out.print("bottom left value "+getPixel(leftOrig, downOrig, 0) +"\n");
+        System.out.print("bottom right value "+getPixel(rightOrig, upOrig, 0) +"\n");
         while (true) {
             flag = false;
             while (right < width && contains(up, down, right, false,0)) {
@@ -145,6 +149,7 @@ public class RawImage {
                 break;
             }
         }
+
         if ((left == 0 || up == 0 || right == width || down == height) || (left == leftOrig && right == rightOrig && up == upOrig && down == downOrig)) {
              throw new NotFoundException("didn't find any possible bar code: "+left+" "+up+" "+right+" "+down);
         }
