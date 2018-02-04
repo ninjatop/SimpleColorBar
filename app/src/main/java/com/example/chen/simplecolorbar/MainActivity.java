@@ -291,7 +291,7 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 SingleImgToFile singleImgToFile=new SingleImgToFile(mHandler,truthFilePath, saveFilePath);
-                singleImgToFile.singleImg(imageFilePath);
+                //singleImgToFile.singleImg(imageFilePath);
             }
         };
         worker.start();

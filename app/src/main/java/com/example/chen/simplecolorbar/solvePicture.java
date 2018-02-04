@@ -45,8 +45,8 @@ public class solvePicture {
     protected int MixBorderLeft = mixBorderLength;//左边的参考色
 
 
-    protected int contentWidth = 40;//内容宽度
-    protected  int contentHeight = 30;//内容高度
+    protected int contentWidth = 60;//内容宽度
+    protected  int contentHeight = 50;//内容高度
 
     protected Point [][] points;
     protected int[][]refeColor = null;//每行的参考点颜色
@@ -54,7 +54,7 @@ public class solvePicture {
 
     int ecNum;
     int ecLength = 12;//一个symbol对应bit数目,应与RS的decoder参数保持一致
-    protected double ecLevel = 0.2;//%10用来纠错
+    protected double ecLevel = 0.1;//%10用来纠错
     protected int[] borders;//上一次的border坐标
     protected int frameBitNum ;//每一帧的bit总数目
     protected int[] threshols;
